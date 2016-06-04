@@ -237,7 +237,6 @@ function rest:draw()
 
         love.graphics.printf(rest.lives, 0, screenCenter.y / 4, screenCenter.x * 2, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
         love.graphics.printf("Let's play!", screenCenter.x / 2, 200, 900, "center")
-        love.graphics.print(waittime, 300, 400)
     end
 end
 --------------------------------------------------------------------------------
