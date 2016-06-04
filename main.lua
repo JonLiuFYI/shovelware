@@ -134,7 +134,7 @@ function splitScreen:draw()
     splitScreen.left.draw(0, screenCenter.x, screenCenter.y * 2)
     splitScreen.right.draw(screenCenter.x, screenCenter.x * 2, screenCenter.y * 2)
 
-    beats_left = math.floor(playtime/time8beats*8)
+    local beats_left = math.floor(playtime/time8beats*8)
     if beats_left <= 3 then
         love.graphics.printf(beats_left, screenCenter.x/2, 600, 900, "center")
     end
@@ -177,7 +177,7 @@ function rest:enter()
     heart = love.graphics.newImage("assets/heart.png")
     heartScale = (love.graphics.getHeight() / 6) / heart:getHeight()
 
-    waittime = time8beats
+    resttime = time8beats
 
     rest.lives = 10
     rest.lastWin = {}
@@ -232,12 +232,10 @@ function rest:draw()
             love.graphics.printf("R lost!", screenCenter.x/4*3, 200, 900, "center")
         end
     else
-        love.graphics.draw(heart, screenCenter.x, screenCenter.y / 4, 0, heartScale, heartScale, heart:getWidth() / 2, heart:getHeight() / 2)
-        love.graphics.setFont(bigtext)
-
-        love.graphics.printf(rest.lives, 0, screenCenter.y / 4, screenCenter.x * 2, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
         love.graphics.printf("Let's play!", screenCenter.x / 2, 200, 900, "center")
-        love.graphics.print(waittime, 300, 400)
     end
+    love.graphics.draw(heart, screenCenter.x, screenCenter.y / 4, 0, heartScale, heartScale, heart:getWidth() / 2, heart:getHeight() / 2)
+    love.graphics.setFont(bigtext)
+    love.graphics.printf(rest.lives, 0, screenCenter.y / 4, screenCenter.x * 2, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
 end
 --------------------------------------------------------------------------------
