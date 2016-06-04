@@ -14,25 +14,44 @@ local screenCenter = {}
 local bindings = {}
 
 local music = {}
-local time4beats = 2.122 / tick.timescale
-local time8beats = 4.256 / tick.timescale
-local waittime = -999      -- handy for music timing. -999 is a magic sentinel value.
+local timescale = 1               -- represents the speed of the game. timescale = 1.5 means 1.5 times the speed.
+local time4beats = 2.122    -- time in seconds, scaled by timescale
+local time8beats = 4.256
+local waittime = -999       -- handy for music timing. -999 is a magic sentinel value.
 
 -- fonts
 bigtext = love.graphics.newFont("assets/op-b.ttf", 80)
 generictext = love.graphics.newFont("assets/op-l.ttf", 40)
+
+function set_timescale(speed)
+    tick.timescale = speed
+    music.boss:setPitch(speed)
+    music.faster:setPitch(speed)
+    music.lose:setPitch(speed)
+    music.nextgame:setPitch(speed)
+    music.win:setPitch(speed)
+end
 
 function love.load()
     bindings = {pl = {left = "a", right = "d", up = "w", down = "s", action = "f"},
                 pr = {left = "left", right = "right", up = "up", down = "down", action = "return"}}
     screenCenter.x = love.graphics.getWidth() / 2
     screenCenter.y = love.graphics.getHeight() / 2
+    
     games = love.filesystem.getDirectoryItems("games")
     bosses = love.filesystem.getDirectoryItems("bosses")
     music = {
         begin = love.audio.newSource("assets/sw_begin.wav"),
-        nextgame = love.audio.newSource("assets/sw_next.wav")
+        boss = love.audio.newSource("assets/sw_boss.wav"),
+        faster = love.audio.newSource("assets/sw_faster.wav"),
+        gameover = love.audio.newSource("assets/sw_gameover.wav"),
+        lose = love.audio.newSource("assets/sw_lose.wav"),
+        nextgame = love.audio.newSource("assets/sw_next.wav"),
+        win = love.audio.newSource("assets/sw_win.wav")
     }
+    tick.framerate = 60
+    set_timescale(timescale)
+    
     Gamestate.registerEvents()
     Gamestate.push(menu)
 end
@@ -128,6 +147,7 @@ function rest:enter()
     rest.lives = 10
     rest.lastWin = {}
     rest.fromMenu = true
+    --music.begin:setPitch(timescale)
     music.begin:play()
 end
 
@@ -149,6 +169,7 @@ function rest:update(dt)
         waittime = waittime - dt
     end
     if -999 < waittime and waittime <= 0 then
+        --music.nextgame:setPitch(timescale)
         music.nextgame:play()
         waittime = -999
     end
