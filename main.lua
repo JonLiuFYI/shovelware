@@ -96,14 +96,16 @@ function splitScreen:enter()
 end
 
 function splitScreen:leave()
-    if not splitScreen.left.win then
+    rest.lastWin.pl = splitScreen.left.win
+    rest.lastWin.pr = splitScreen.right.win
+    if not rest.lastWin.pl then
         rest.lives = rest.lives - 1
     end
-    if not splitScreen.right.win then
+    if not rest.lastWin.pr then
         rest.lives = rest.lives - 1
     end
-    if splitScreen.left.win and splitScreen.right.win then
-
+    if rest.lastWin.pl and rest.lastWin.pr then
+        
     end
 end
 
@@ -116,8 +118,8 @@ function splitScreen:update(dt)
     if playtime > 0 then
         playtime = playtime - dt
     elseif -999 < playtime and playtime <= 0 then
-        Gamestate.pop()
         playtime = -999
+        Gamestate.pop()
     end
     
     splitScreen.left.update(dt)
@@ -134,7 +136,7 @@ function splitScreen:draw()
     end
 end
 --------------------------------------------------------------------------------
-function round(n, deci) deci = 10^(deci or 0) return math.floor(n*deci+.5)/deci end
+
 -- Boss gamestate---------------------------------------------------------------
 function boss:enter()
     boss.game = require("bosses/" .. bosses[love.math.random(#bosses)]:sub(1, -5))
@@ -180,7 +182,9 @@ end
 function rest:resume()
     rest.fromMenu = false
     if rest.lastWin.pl and rest.lastWin.pr then
-        --win music
+        print("hey")
+        music.win:play()
+        
     else
         --loss music
     end
@@ -206,14 +210,15 @@ end
 function rest:draw()
     if not rest.fromMenu then
         if rest.lastWin.pl then
-            --win
-        else
-            --lose
+            love.graphics.printf("L won!", screenCenter.x/4, 200, 900, "center")
+        elseif not rest.lastWin.pl then
+            love.graphics.printf("L lost!", screenCenter.x/4, 200, 900, "center")
         end
+        
         if rest.lastWin.pr then
-            --win
-        else
-            --lose
+            love.graphics.printf("R won!", screenCenter.x/4*3, 200, 900, "center")
+        elseif not rest.lastWin.pr then
+            love.graphics.printf("R lost!", screenCenter.x/4*3, 200, 900, "center")
         end
     else
         love.graphics.setFont(bigtext)
