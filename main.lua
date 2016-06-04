@@ -23,7 +23,7 @@ local nexttime = -999       -- Wait this long before starting next.
 local playtime = -999       -- Wait this long before quitting splitscreen minigames.
 
 -- fonts
-bigtext = love.graphics.newFont("assets/op-b.ttf", 80)
+bigtext = love.graphics.newFont("assets/op-b.ttf", 64)
 generictext = love.graphics.newFont("assets/op-l.ttf", 40)
 
 function set_timescale(speed)
@@ -35,12 +35,16 @@ function set_timescale(speed)
     music.win:setPitch(speed)
 end
 
+local logo
+local heart
+
+
 function love.load()
     bindings = {pl = {left = "a", right = "d", up = "w", down = "s", action = "f"},
                 pr = {left = "left", right = "right", up = "up", down = "down", action = "return"}}
     screenCenter.x = love.graphics.getWidth() / 2
     screenCenter.y = love.graphics.getHeight() / 2
-    
+
     games = love.filesystem.getDirectoryItems("games")
     bosses = love.filesystem.getDirectoryItems("bosses")
     music = {
@@ -55,7 +59,7 @@ function love.load()
     }
     tick.framerate = 60
     set_timescale(timescale)
-    
+
     Gamestate.registerEvents()
     Gamestate.push(menu)
 end
@@ -88,9 +92,9 @@ function splitScreen:enter()
     repeat
         splitScreen.right = require("games/" .. games[love.math.random(#games)]:sub(1, -5))
     until splitScreen.right ~= splitScreen.left
-    
+
     playtime = time8beats
-    
+
     print(splitScreen.left.load())
     print(splitScreen.right.load())
 end
@@ -105,7 +109,7 @@ function splitScreen:leave()
         rest.lives = rest.lives - 1
     end
     if rest.lastWin.pl and rest.lastWin.pr then
-        
+
     end
 end
 
@@ -121,7 +125,7 @@ function splitScreen:update(dt)
         playtime = -999
         Gamestate.pop()
     end
-    
+
     splitScreen.left.update(dt)
     splitScreen.right.update(dt)
 end
@@ -129,7 +133,7 @@ end
 function splitScreen:draw()
     splitScreen.left.draw(0, screenCenter.x, screenCenter.y * 2)
     splitScreen.right.draw(screenCenter.x, screenCenter.x * 2, screenCenter.y * 2)
-    
+
     beats_left = math.floor(playtime/time8beats*8)
     if beats_left <= 3 then
         love.graphics.printf(beats_left, screenCenter.x/2, 600, 900, "center")
@@ -166,8 +170,15 @@ end
 
 -- Rest gamestate -------------------------------------------------------
 function rest:enter()
+
     resttime = time8beats
-    
+
+
+    heart = love.graphics.newImage("assets/heart.png")
+    heartScale = (love.graphics.getHeight() / 6) / heart:getHeight()
+
+    waittime = time8beats
+
     rest.lives = 10
     rest.lastWin = {}
     rest.fromMenu = true
@@ -184,7 +195,7 @@ function rest:resume()
     if rest.lastWin.pl and rest.lastWin.pr then
         print("hey")
         music.win:play()
-        
+
     else
         --loss music
     end
@@ -198,7 +209,7 @@ function rest:update(dt)
         resttime = -999
         nexttime = time4beats
     end
-    
+
     if nexttime > 0 then
         nexttime = nexttime - dt
     elseif -999 < nexttime and nexttime <= 0 then
@@ -214,16 +225,19 @@ function rest:draw()
         elseif not rest.lastWin.pl then
             love.graphics.printf("L lost!", screenCenter.x/4, 200, 900, "center")
         end
-        
+
         if rest.lastWin.pr then
             love.graphics.printf("R won!", screenCenter.x/4*3, 200, 900, "center")
         elseif not rest.lastWin.pr then
             love.graphics.printf("R lost!", screenCenter.x/4*3, 200, 900, "center")
         end
     else
+        love.graphics.draw(heart, screenCenter.x, screenCenter.y / 4, 0, heartScale, heartScale, heart:getWidth() / 2, heart:getHeight() / 2)
         love.graphics.setFont(bigtext)
-        love.graphics.printf("Let's play!", screenCenter.x/2, 200, 900, "center")
-        love.graphics.print(resttime, 300, 400)
+
+        love.graphics.printf(rest.lives, 0, screenCenter.y / 4, screenCenter.x * 2, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
+        love.graphics.printf("Let's play!", screenCenter.x / 2, 200, 900, "center")
+        love.graphics.print(waittime, 300, 400)
     end
 end
 --------------------------------------------------------------------------------
