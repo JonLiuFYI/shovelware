@@ -13,11 +13,17 @@ local bosses = {}
 local screenCenter = {}
 local bindings = {}
 
+local color = {
+    holoblue = {51, 181, 229},
+    loserred = {217, 69, 69},
+    white = {255, 255, 255}
+}
+
+-- music timing stuff
 local music = {}
 local timescale = 1               -- represents the speed of the game. timescale = 1.5 means 1.5 times the speed.
 local time4beats = 2.122    -- time in seconds, scaled by timescale
 local time8beats = 4.256
--- music timing
 local resttime = -999       -- Wait this long once rest is started. -999 is a magic sentinel value.
 local nexttime = -999       -- Wait this long before starting next.
 local playtime = -999       -- Wait this long before quitting splitscreen minigames.
@@ -173,11 +179,10 @@ function rest:enter()
 
     resttime = time8beats
 
-
     heart = love.graphics.newImage("assets/heart.png")
     heartScale = (love.graphics.getHeight() / 6) / heart:getHeight()
 
-    waittime = time8beats
+    resttime = time8beats
 
     rest.lives = 10
     rest.lastWin = {}
@@ -192,12 +197,11 @@ end
 
 function rest:resume()
     rest.fromMenu = false
+    -- play the right music based on how the team played
     if rest.lastWin.pl and rest.lastWin.pr then
-        print("hey")
         music.win:play()
-
     else
-        --loss music
+        music.lose:play()
     end
 end
 
@@ -221,14 +225,18 @@ end
 function rest:draw()
     if not rest.fromMenu then
         if rest.lastWin.pl then
+            love.graphics.setColor(color.holoblue)
             love.graphics.printf("L won!", screenCenter.x/4, 200, 900, "center")
         elseif not rest.lastWin.pl then
+            love.graphics.setColor(color.loserred)
             love.graphics.printf("L lost!", screenCenter.x/4, 200, 900, "center")
         end
 
         if rest.lastWin.pr then
+            love.graphics.setColor(color.holoblue)
             love.graphics.printf("R won!", screenCenter.x/4*3, 200, 900, "center")
         elseif not rest.lastWin.pr then
+            love.graphics.setColor(color.loserred)
             love.graphics.printf("R lost!", screenCenter.x/4*3, 200, 900, "center")
         end
     else
