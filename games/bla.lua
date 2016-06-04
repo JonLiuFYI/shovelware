@@ -1,7 +1,7 @@
 local bla = {}
-bla.win = false
 
 function bla.load()
+    bla.win = false
     return "bla"
 end
 
