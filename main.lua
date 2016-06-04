@@ -1,9 +1,11 @@
-local Gamestate = require 'hump.gamestate'
+local Gamestate = require "hump.gamestate"
+local tick = require "tick"
 
 -- Gamestates ------------------------------------------------------------------
 local menu = {}
 local splitScreen = {}
 local boss = {}
+local rest = {}
 --------------------------------------------------------------------------------
 
 local games = {}
@@ -11,6 +13,7 @@ local bosses = {}
 local screenCenter = {}
 local bindings = {}
 
+local music = {}
 
 function love.load()
     bindings = {pl = {left = "a", right = "d", up = "w", down = "s", action = "f"},
@@ -19,6 +22,9 @@ function love.load()
     screenCenter.y = love.graphics.getHeight() / 2
     games = love.filesystem.getDirectoryItems("games")
     bosses = love.filesystem.getDirectoryItems("bosses")
+    music = {
+        begin = love.audio.newSource("assets/sw_begin.wav")
+    }
     Gamestate.registerEvents()
     Gamestate.push(menu)
 end
@@ -31,6 +37,7 @@ end
 
 function menu:draw()
     love.graphics.draw(logo, screenCenter.x, screenCenter.y / 1.5, 0, logoScale, logoScale, logo:getWidth() / 2, logo:getHeight() / 2)
+    love.graphics.print("press ENTER", 600, 500)
 end
 
 function menu:keyreleased(key)
@@ -110,6 +117,7 @@ function rest:enter()
     rest.lives = 10
     rest.lastWin = {}
     rest.fromMenu = true
+    music.begin:play()
 end
 
 function rest:leave()
