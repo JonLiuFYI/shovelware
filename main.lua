@@ -81,8 +81,12 @@ end
 
 -- SplitScreen gamestate -------------------------------------------------------
 function splitScreen:enter()
+    -- load two games. don't let them be the same.
     splitScreen.left = require("games/" .. games[love.math.random(#games)]:sub(1, -5))
-    splitScreen.right = require("games/" .. games[love.math.random(#games)]:sub(1, -5))
+    repeat
+        splitScreen.right = require("games/" .. games[love.math.random(#games)]:sub(1, -5))
+    until splitScreen.right ~= splitScreen.left
+    
     print(splitScreen.left.load())
     print(splitScreen.right.load())
 end
@@ -149,7 +153,6 @@ function rest:enter()
     rest.lives = 10
     rest.lastWin = {}
     rest.fromMenu = true
-    --music.begin:setPitch(timescale)
     music.begin:play()
 end
 

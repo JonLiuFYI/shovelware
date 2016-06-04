@@ -9,18 +9,6 @@ function bla.keypressed(key, pBindings)
     if key == pBindings.left then
         bla.win = true
     end
-    if key == pBindings.right then
-
-    end
-    if key == pBindings.up then
-
-    end
-    if key == pBindings.down then
-
-    end
-    if key == pBindings.action then
-
-    end
 end
 
 function bla.update(dt)
