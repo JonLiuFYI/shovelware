@@ -7,7 +7,7 @@ end
 
 function bla.keypressed(key, pBindings)
     if key == pBindings.left then
-
+        bla.win = true
     end
     if key == pBindings.right then
 
@@ -28,7 +28,10 @@ function bla.update(dt)
 end
 
 function bla.draw(x1, x2, y)
-    love.graphics.print("It Works", x1, y / 2)
+    love.graphics.print("press LEFT", x1, y / 2)
+    if bla.win then
+        love.graphics.print("You did it!", x1, y/2-200)
+    end
 end
 
 return bla

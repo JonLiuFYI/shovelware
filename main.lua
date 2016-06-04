@@ -17,7 +17,9 @@ local music = {}
 local timescale = 1               -- represents the speed of the game. timescale = 1.5 means 1.5 times the speed.
 local time4beats = 2.122    -- time in seconds, scaled by timescale
 local time8beats = 4.256
-local waittime = -999       -- handy for music timing. -999 is a magic sentinel value.
+-- music timing
+local resttime = -999       -- Wait this long once rest is started. -999 is a magic sentinel value.
+local nexttime = -999       -- Wait this long before starting next.
 
 -- fonts
 bigtext = love.graphics.newFont("assets/op-b.ttf", 80)
@@ -142,7 +144,7 @@ end
 
 -- Rest gamestate -------------------------------------------------------
 function rest:enter()
-    waittime = time8beats
+    resttime = time8beats
     
     rest.lives = 10
     rest.lastWin = {}
@@ -165,13 +167,18 @@ function rest:resume()
 end
 
 function rest:update(dt)
-    if waittime > 0 then
-        waittime = waittime - dt
-    end
-    if -999 < waittime and waittime <= 0 then
-        --music.nextgame:setPitch(timescale)
+    if resttime > 0 then
+        resttime = resttime - dt
+    elseif -999 < resttime and resttime <= 0 then
         music.nextgame:play()
-        waittime = -999
+        resttime = -999
+        nexttime = time4beats
+    end
+    
+    if nexttime > 0 then
+        nexttime = nexttime - dt
+    elseif -999 < nexttime and nexttime <= 0 then
+        Gamestate.push(splitScreen)
     end
 end
 
@@ -190,7 +197,7 @@ function rest:draw()
     else
         love.graphics.setFont(bigtext)
         love.graphics.printf("Let's play!", screenCenter.x/2, 200, 900, "center")
-        love.graphics.print(waittime, 300, 400)
+        love.graphics.print(resttime, 300, 400)
     end
 end
 --------------------------------------------------------------------------------
