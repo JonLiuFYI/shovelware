@@ -20,6 +20,7 @@ local time8beats = 4.256
 -- music timing
 local resttime = -999       -- Wait this long once rest is started. -999 is a magic sentinel value.
 local nexttime = -999       -- Wait this long before starting next.
+local playtime = -999       -- Wait this long before quitting splitscreen minigames.
 
 -- fonts
 bigtext = love.graphics.newFont("assets/op-b.ttf", 80)
@@ -47,6 +48,7 @@ function love.load()
         boss = love.audio.newSource("assets/sw_boss.wav"),
         faster = love.audio.newSource("assets/sw_faster.wav"),
         gameover = love.audio.newSource("assets/sw_gameover.wav"),
+        intro = love.audio.newSource("assets/sw_intro.wav"),
         lose = love.audio.newSource("assets/sw_lose.wav"),
         nextgame = love.audio.newSource("assets/sw_next.wav"),
         win = love.audio.newSource("assets/sw_win.wav")
@@ -87,6 +89,8 @@ function splitScreen:enter()
         splitScreen.right = require("games/" .. games[love.math.random(#games)]:sub(1, -5))
     until splitScreen.right ~= splitScreen.left
     
+    playtime = time8beats
+    
     print(splitScreen.left.load())
     print(splitScreen.right.load())
 end
@@ -109,6 +113,13 @@ function splitScreen:keypressed(key)
 end
 
 function splitScreen:update(dt)
+    if playtime > 0 then
+        playtime = playtime - dt
+    elseif -999 < playtime and playtime <= 0 then
+        Gamestate.pop()
+        playtime = -999
+    end
+    
     splitScreen.left.update(dt)
     splitScreen.right.update(dt)
 end
@@ -116,9 +127,14 @@ end
 function splitScreen:draw()
     splitScreen.left.draw(0, screenCenter.x, screenCenter.y * 2)
     splitScreen.right.draw(screenCenter.x, screenCenter.x * 2, screenCenter.y * 2)
+    
+    beats_left = math.floor(playtime/time8beats*8)
+    if beats_left <= 3 then
+        love.graphics.printf(beats_left, screenCenter.x/2, 600, 900, "center")
+    end
 end
 --------------------------------------------------------------------------------
-
+function round(n, deci) deci = 10^(deci or 0) return math.floor(n*deci+.5)/deci end
 -- Boss gamestate---------------------------------------------------------------
 function boss:enter()
     boss.game = require("bosses/" .. bosses[love.math.random(#bosses)]:sub(1, -5))
@@ -154,6 +170,7 @@ function rest:enter()
     rest.lastWin = {}
     rest.fromMenu = true
     music.begin:play()
+    music.intro:play()
 end
 
 function rest:leave()
