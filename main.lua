@@ -179,6 +179,7 @@ function rest:update(dt)
         nexttime = nexttime - dt
     elseif -999 < nexttime and nexttime <= 0 then
         Gamestate.push(splitScreen)
+        nexttime = -999
     end
 end
 
