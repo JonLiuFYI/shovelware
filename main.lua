@@ -19,8 +19,11 @@ local time8beats = 4.256 / tick.timescale
 local waittime = -999      -- handy for music timing. -999 is a magic sentinel value.
 
 -- fonts
-bigtext = love.graphics.newFont("assets/op-b.ttf", 80)
+bigtext = love.graphics.newFont("assets/op-b.ttf", 64)
 generictext = love.graphics.newFont("assets/op-l.ttf", 40)
+
+local logo
+local heart
 
 function love.load()
     bindings = {pl = {left = "a", right = "d", up = "w", down = "s", action = "f"},
@@ -123,8 +126,10 @@ end
 
 -- Rest gamestate -------------------------------------------------------
 function rest:enter()
+    heart = love.graphics.newImage("assets/heart.png")
+    heartScale = (love.graphics.getHeight() / 6) / heart:getHeight()
+
     waittime = time8beats
-    
     rest.lives = 10
     rest.lastWin = {}
     rest.fromMenu = true
@@ -167,8 +172,10 @@ function rest:draw()
             --lose
         end
     else
+        love.graphics.draw(heart, screenCenter.x, screenCenter.y / 4, 0, heartScale, heartScale, heart:getWidth() / 2, heart:getHeight() / 2)
         love.graphics.setFont(bigtext)
-        love.graphics.printf("Let's play!", screenCenter.x/2, 200, 900, "center")
+        love.graphics.printf(rest.lives, 0, screenCenter.y / 4, screenCenter.x * 2, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
+        love.graphics.printf("Let's play!", screenCenter.x / 2, 200, 900, "center")
         love.graphics.print(waittime, 300, 400)
     end
 end
