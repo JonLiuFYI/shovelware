@@ -1,7 +1,7 @@
 local test = {}
-test.win = true
 
 function test.load()
+    test.win = true
     return "test"
 end
 

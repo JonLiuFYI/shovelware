@@ -197,12 +197,14 @@ end
 
 function rest:resume()
     rest.fromMenu = false
-    -- play the right music based on how the team played
+    -- play the right music based on how the team played. Then start the countdown to next game.
     if rest.lastWin.pl and rest.lastWin.pr then
         music.win:play()
     else
         music.lose:play()
     end
+
+    resttime = time4beats
 end
 
 function rest:update(dt)
