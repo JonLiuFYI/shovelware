@@ -1,9 +1,11 @@
-local Gamestate = require 'hump.gamestate'
+local Gamestate = require "hump.gamestate"
+local tick = require "tick"
 
 -- Gamestates ------------------------------------------------------------------
 local menu = {}
 local splitScreen = {}
 local boss = {}
+local rest = {}
 --------------------------------------------------------------------------------
 
 local games = {}
@@ -11,6 +13,14 @@ local bosses = {}
 local screenCenter = {}
 local bindings = {}
 
+local music = {}
+local time4beats = 2.122 / tick.timescale
+local time8beats = 4.256 / tick.timescale
+local waittime = -999      -- handy for music timing. -999 is a magic sentinel value.
+
+-- fonts
+bigtext = love.graphics.newFont("assets/op-b.ttf", 80)
+generictext = love.graphics.newFont("assets/op-l.ttf", 40)
 
 function love.load()
     bindings = {pl = {left = "a", right = "d", up = "w", down = "s", action = "f"},
@@ -19,6 +29,10 @@ function love.load()
     screenCenter.y = love.graphics.getHeight() / 2
     games = love.filesystem.getDirectoryItems("games")
     bosses = love.filesystem.getDirectoryItems("bosses")
+    music = {
+        begin = love.audio.newSource("assets/sw_begin.wav"),
+        nextgame = love.audio.newSource("assets/sw_next.wav")
+    }
     Gamestate.registerEvents()
     Gamestate.push(menu)
 end
@@ -31,6 +45,8 @@ end
 
 function menu:draw()
     love.graphics.draw(logo, screenCenter.x, screenCenter.y / 1.5, 0, logoScale, logoScale, logo:getWidth() / 2, logo:getHeight() / 2)
+    love.graphics.setFont(generictext)
+    love.graphics.printf("press ENTER", screenCenter.x/2, 700, 900, "center")
 end
 
 function menu:keyreleased(key)
@@ -107,9 +123,12 @@ end
 
 -- Rest gamestate -------------------------------------------------------
 function rest:enter()
+    waittime = time8beats
+    
     rest.lives = 10
     rest.lastWin = {}
     rest.fromMenu = true
+    music.begin:play()
 end
 
 function rest:leave()
@@ -126,7 +145,13 @@ function rest:resume()
 end
 
 function rest:update(dt)
-
+    if waittime > 0 then
+        waittime = waittime - dt
+    end
+    if -999 < waittime and waittime <= 0 then
+        music.nextgame:play()
+        waittime = -999
+    end
 end
 
 function rest:draw()
@@ -141,6 +166,10 @@ function rest:draw()
         else
             --lose
         end
+    else
+        love.graphics.setFont(bigtext)
+        love.graphics.printf("Let's play!", screenCenter.x/2, 200, 900, "center")
+        love.graphics.print(waittime, 300, 400)
     end
 end
 --------------------------------------------------------------------------------
