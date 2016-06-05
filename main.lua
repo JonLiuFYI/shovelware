@@ -14,8 +14,8 @@ local screenCenter = {}
 local bindings = {}
 
 local color = {
-    holoblue = {51, 181, 229},
-    loserred = {217, 69, 69},
+    playerblue = {51, 181, 229},
+    playerred = {217, 69, 69},
     white = {255, 255, 255}
 }
 
@@ -27,6 +27,11 @@ local time8beats = 4.256
 local resttime = -999       -- Wait this long once rest is started. -999 is a magic sentinel value.
 local nexttime = -999       -- Wait this long before starting next.
 local playtime = -999       -- Wait this long before quitting splitscreen minigames.
+
+-- game phase timing stuff
+local faster_interval = 5   -- play 5 games, then get faster
+local boss_interval = 15    -- play 15 games, then play a boss. (don't get faster.)
+local games_played = 0      -- we've played this many games so far
 
 -- fonts
 bigtext = love.graphics.newFont("assets/op-b.ttf", 64)
@@ -184,7 +189,7 @@ function rest:enter()
 
     resttime = time8beats
 
-    rest.lives = 1
+    rest.lives = 2
     rest.lastWin = {}
     rest.fromMenu = true
     music.begin:play()
@@ -198,13 +203,14 @@ end
 function rest:resume()
     rest.fromMenu = false
     -- play the right music based on how the team played. Then start the countdown to next game.
-
     if rest.lastWin.pl and rest.lastWin.pr then
         music.win:play()
     else
         music.lose:play()
     end
-
+    
+    games_played = games_played + 1
+    
     resttime = time4beats
 end
 
@@ -233,23 +239,28 @@ end
 function rest:draw()
     if not rest.fromMenu then
         if rest.lastWin.pl then
-            love.graphics.setColor(color.holoblue)
+            love.graphics.setColor(color.playerblue)
             love.graphics.printf("L won!", 0, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
         elseif not rest.lastWin.pl then
-            love.graphics.setColor(color.loserred)
+            love.graphics.setColor(color.white)
             love.graphics.printf("L lost!", 0, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
         end
 
         if rest.lastWin.pr then
-            love.graphics.setColor(color.holoblue)
+            love.graphics.setColor(color.playerred)
             love.graphics.printf("R won!", screenCenter.x, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
         elseif not rest.lastWin.pr then
-            love.graphics.setColor(color.loserred)
+            love.graphics.setColor(color.white)
             love.graphics.printf("R lost!", screenCenter.x, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
         end
     else
         love.graphics.printf("Let's play!", 0, screenCenter.y, screenCenter.x * 2, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
     end
+    
+    love.graphics.setColor(color.white)
+    love.graphics.setFont(generictext)
+    love.graphics.printf("(Games played: "..games_played..")", 0, screenCenter.y + 200, screenCenter.x * 2, "center", 0, 1, 1, 0, generictext:getHeight() / 1.7)
+    
     love.graphics.setFont(bigtext)
     love.graphics.setColor(color.white)
     love.graphics.draw(heart, screenCenter.x, screenCenter.y / 4, 0, heartScale, heartScale, heart:getWidth() / 2, heart:getHeight() / 2)
