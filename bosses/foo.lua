@@ -9,34 +9,34 @@ function foo.load(x, w, h)
 end
 
 function foo.keypressed(key, bindings)
-    if key == bindings.pl.left then
 
-    end
-    if key == bindings.pl.right then
-
-    end
-    if key == bindings.pl.up then
-
-    end
-    if key == bindings.pl.down then
-
-    end
-    if key == bindings.pr.left then
-
-    end
-    if key == bindings.pr.right then
-
-    end
-    if key == bindings.pr.up then
-
-    end
-    if key == bindings.pr.down then
-
-    end
 end
 
-function foo.update(dt)
+function foo.update(dt, bindings)
+    if love.keyboard.isDown(bindings.pl.left) then
 
+    end
+    if love.keyboard.isDown(bindings.pl.right) then
+
+    end
+    if love.keyboard.isDown(bindings.pl.up) then
+
+    end
+    if love.keyboard.isDown(bindings.pl.down) then
+
+    end
+    if love.keyboard.isDown(bindings.pr.left) then
+
+    end
+    if love.keyboard.isDown(bindings.pr.right) then
+
+    end
+    if love.keyboard.isDown(bindings.pr.up) then
+
+    end
+    if love.keyboard.isDown(bindings.pr.down) then
+
+    end
 end
 
 function foo.draw()
