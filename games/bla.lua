@@ -2,7 +2,7 @@ local bla = {}
 
 function bla.load()
     bla.win = false
-    return "bla"
+    bla.instruction = "Do this!"
 end
 
 function bla.keypressed(key, pBindings)
