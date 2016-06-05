@@ -76,6 +76,8 @@ function love.load()
         intro = love.audio.newSource("assets/sw_intro.wav"),
         lose = love.audio.newSource("assets/sw_lose.wav"),
         nextgame = love.audio.newSource("assets/sw_next.wav"),
+        tick = love.audio.newSource("assets/tick.wav"),
+        tock = love.audio.newSource("assets/tock.wav"),
         win = love.audio.newSource("assets/sw_win.wav")
     }
     graphics = {
