@@ -2,7 +2,6 @@ local bla = {}
 
 function bla.load()
     bla.win = false
-    return "bla"
 end
 
 function bla.keypressed(key, pBindings)
@@ -19,9 +18,9 @@ function bla.draw(x1, x2, y)
     love.graphics.setColor(0, 100, 100)
     love.graphics.rectangle("fill", x1, 0, x2-x1, y)
     love.graphics.setColor(255, 255, 255)
-    love.graphics.print("press LEFT", x1, y / 2)
+    love.graphics.printf("press LEFT", x1, y / 2, x2 - x1, "center")
     if bla.win then
-        love.graphics.print("You did it!", x1, y/2-200)
+        love.graphics.printf("You did it!", x1, y / 3, x2 - x1, "center")
     end
 end
 

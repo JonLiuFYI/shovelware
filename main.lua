@@ -79,7 +79,7 @@ end
 function menu:draw()
     love.graphics.draw(logo, screenCenter.x, screenCenter.y / 1.5, 0, logoScale, logoScale, logo:getWidth() / 2, logo:getHeight() / 2)
     love.graphics.setFont(generictext)
-    love.graphics.printf("press ENTER", screenCenter.x/2, 700, 900, "center")
+    love.graphics.printf("press ENTER", 0, screenCenter.y * 1.5, screenCenter.x * 2, "center", 0, 1, 1, 0, generictext:getHeight() / 1.7)
 end
 
 function menu:keyreleased(key)
@@ -142,7 +142,7 @@ function splitScreen:draw()
 
     local beats_left = math.floor(playtime/time8beats*8)
     if beats_left <= 3 then
-        love.graphics.printf(beats_left, screenCenter.x/2, 600, 900, "center")
+        love.graphics.printf(beats_left, screenCenter.x / 2, 600, 900, "center")
     end
 end
 --------------------------------------------------------------------------------
@@ -184,7 +184,7 @@ function rest:enter()
 
     resttime = time8beats
 
-    rest.lives = 10
+    rest.lives = 1
     rest.lastWin = {}
     rest.fromMenu = true
     music.begin:play()
@@ -198,6 +198,7 @@ end
 function rest:resume()
     rest.fromMenu = false
     -- play the right music based on how the team played. Then start the countdown to next game.
+
     if rest.lastWin.pl and rest.lastWin.pr then
         music.win:play()
     else
@@ -211,9 +212,14 @@ function rest:update(dt)
     if resttime > 0 then
         resttime = resttime - dt
     elseif -999 < resttime and resttime <= 0 then
-        music.nextgame:play()
         resttime = -999
-        nexttime = time4beats
+        if rest.lives <= 0 then
+            music.gameover:play()
+            Gamestate.pop()
+        else
+            music.nextgame:play()
+            nexttime = time4beats
+        end
     end
 
     if nexttime > 0 then
@@ -228,24 +234,25 @@ function rest:draw()
     if not rest.fromMenu then
         if rest.lastWin.pl then
             love.graphics.setColor(color.holoblue)
-            love.graphics.printf("L won!", screenCenter.x/4, 200, 900, "center")
+            love.graphics.printf("L won!", 0, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
         elseif not rest.lastWin.pl then
             love.graphics.setColor(color.loserred)
-            love.graphics.printf("L lost!", screenCenter.x/4, 200, 900, "center")
+            love.graphics.printf("L lost!", 0, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
         end
 
         if rest.lastWin.pr then
             love.graphics.setColor(color.holoblue)
-            love.graphics.printf("R won!", screenCenter.x/4*3, 200, 900, "center")
+            love.graphics.printf("R won!", screenCenter.x, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
         elseif not rest.lastWin.pr then
             love.graphics.setColor(color.loserred)
-            love.graphics.printf("R lost!", screenCenter.x/4*3, 200, 900, "center")
+            love.graphics.printf("R lost!", screenCenter.x, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
         end
     else
-        love.graphics.printf("Let's play!", screenCenter.x / 2, 200, 900, "center")
+        love.graphics.printf("Let's play!", 0, screenCenter.y, screenCenter.x * 2, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
     end
-    love.graphics.draw(heart, screenCenter.x, screenCenter.y / 4, 0, heartScale, heartScale, heart:getWidth() / 2, heart:getHeight() / 2)
     love.graphics.setFont(bigtext)
-    love.graphics.printf(rest.lives, 0, screenCenter.y / 4, screenCenter.x * 2, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
+    love.graphics.setColor(color.white)
+    love.graphics.draw(heart, screenCenter.x, screenCenter.y / 4, 0, heartScale, heartScale, heart:getWidth() / 2, heart:getHeight() / 2)
+    love.graphics.printf(math.max(rest.lives, 0), 0, screenCenter.y / 4, screenCenter.x * 2, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
 end
 --------------------------------------------------------------------------------
