@@ -25,12 +25,13 @@ local timescale = 1               -- represents the speed of the game. timescale
 local time4beats = 2.122    -- time in seconds, scaled by timescale
 local time8beats = 4.256
 local resttime = -999       -- Wait this long once rest is started. -999 is a magic sentinel value.
+local warntime = -999       -- Wait this long while a warning is playing.
 local nexttime = -999       -- Wait this long before starting next.
 local playtime = -999       -- Wait this long before quitting splitscreen minigames.
 
 -- game phase timing stuff
-local faster_interval = 5   -- play 5 games, then get faster
-local boss_interval = 15    -- play 15 games, then play a boss. (don't get faster.)
+local faster_interval = 2   -- play 5 games, then get faster
+local boss_interval = 6    -- play 15 games, then play a boss. (don't get faster.)
 local games_played = 0      -- we've played this many games so far
 
 -- fonts
@@ -215,22 +216,49 @@ function rest:resume()
 end
 
 function rest:update(dt)
+    local playnext = true
+    
+    -- wait while win/lose tune plays, then play the next appropriate thing
     if resttime > 0 then
         resttime = resttime - dt
     elseif -999 < resttime and resttime <= 0 then
         resttime = -999
+        -- no more lives. game over. Leave this state.
         if rest.lives <= 0 then
             music.gameover:play()
             Gamestate.pop()
+            
+        -- incoming boss: insert boss warning before nexttime
+        elseif games_played % boss_interval == 0 and games_played ~= 0 then
+            music.boss:play()
+            warntime = time8beats
+            
+        -- speed up: insert speed warning before nexttime
+        elseif games_played % faster_interval == 0 and games_played ~= 0 then
+            music.faster:play()
+            warntime = time8beats
+        
+        -- nothing special. just move to next minigame.
         else
-            music.nextgame:play()
             nexttime = time4beats
         end
     end
+    
+    -- wait while warning plays, then proceed to nexttime
+    if warntime > 0 then
+        warntime = warntime - dt
+    elseif -999 < warntime and warntime <= 0 then
+        nexttime = time4beats
+        warntime = -999
+    end
 
+    -- wait while next tune plays, then move to minigames
     if nexttime > 0 then
+        if playnext then music.nextgame:play() end
+        playnext = false
         nexttime = nexttime - dt
     elseif -999 < nexttime and nexttime <= 0 then
+        love.audio.stop()
         Gamestate.push(splitScreen)
         nexttime = -999
     end
@@ -240,18 +268,26 @@ function rest:draw()
     if not rest.fromMenu then
         if rest.lastWin.pl then
             love.graphics.setColor(color.playerblue)
-            love.graphics.printf("L won!", 0, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
+            love.graphics.setFont(bigtext)
+            love.graphics.printf("Pass!", 0, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
         elseif not rest.lastWin.pl then
             love.graphics.setColor(color.white)
-            love.graphics.printf("L lost!", 0, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
+            love.graphics.setFont(bigtext)
+            love.graphics.printf("Miss!", 0, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
+            love.graphics.setFont(generictext)
+            love.graphics.printf("-1 life", 0, screenCenter.y + 50, screenCenter.x, "center", 0, 1, 1, 0, generictext:getHeight() / 1.7)
         end
 
         if rest.lastWin.pr then
             love.graphics.setColor(color.playerred)
-            love.graphics.printf("R won!", screenCenter.x, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
+            love.graphics.setFont(bigtext)
+            love.graphics.printf("Pass!", screenCenter.x, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
         elseif not rest.lastWin.pr then
             love.graphics.setColor(color.white)
-            love.graphics.printf("R lost!", screenCenter.x, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
+            love.graphics.setFont(bigtext)
+            love.graphics.printf("Miss!", screenCenter.x, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
+            love.graphics.setFont(generictext)
+            love.graphics.printf("-1 life", screenCenter.x, screenCenter.y + 50, screenCenter.x, "center", 0, 1, 1, 0, generictext:getHeight() / 1.7)
         end
     else
         love.graphics.printf("Let's play!", 0, screenCenter.y, screenCenter.x * 2, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
