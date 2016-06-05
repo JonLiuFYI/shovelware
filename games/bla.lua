@@ -1,8 +1,11 @@
 local bla = {}
 
-function bla.load()
+function bla.load(x, w, h)
     bla.win = false
     bla.instruction = "Do this!"
+    bla.x = x
+    bla.w = w
+    bla.h = h
 end
 
 function bla.keypressed(key, pBindings)
@@ -15,13 +18,13 @@ function bla.update(dt)
 
 end
 
-function bla.draw(x, w, h)
+function bla.draw()
     love.graphics.setColor(0, 100, 100)
-    love.graphics.rectangle("fill", x, 0, w, h)
+    love.graphics.rectangle("fill", bla.x, 0, bla.w, bla.h)
     love.graphics.setColor(255, 255, 255)
-    love.graphics.printf("press LEFT", x, h / 2, w, "center")
+    love.graphics.printf("press LEFT", bla.x, bla.h / 2, bla.w, "center")
     if bla.win then
-        love.graphics.printf("You did it!", x, h / 3, w, "center")
+        love.graphics.printf("You did it!", bla.x, bla.h / 3, bla.w, "center")
     end
 end
 

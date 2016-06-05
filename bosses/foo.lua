@@ -1,8 +1,11 @@
 local foo = {}
-foo.win = false
 
-function foo.load()
-    return "foo"
+function foo.load(x, w, h)
+    foo.win = false
+    foo.instruction = "Run!"
+    foo.x = x
+    foo.w = w
+    foo.h = h
 end
 
 function foo.keypressed(key, bindings)
@@ -36,8 +39,8 @@ function foo.update(dt)
 
 end
 
-function foo.draw(x, w, h)
-    love.graphics.printf("It Works", x, h / 2, w, "center")
+function foo.draw()
+    love.graphics.printf("It Works", foo.x, foo.h / 2, foo.w, "center")
 end
 
 return foo

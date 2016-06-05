@@ -1,8 +1,11 @@
 local test = {}
 
-function test.load()
+function test.load(x, w, h)
     test.win = true
     test.instruction = "Obey!"
+    test.x = x
+    test.w = w
+    test.h = h
 end
 
 function test.keypressed(key, pBindings)
@@ -15,13 +18,13 @@ function test.update(dt)
 
 end
 
-function test.draw(x, w, h)
+function test.draw()
     love.graphics.setColor(100, 100, 0)
-    love.graphics.rectangle("fill", x, 0, w, h)
+    love.graphics.rectangle("fill", test.x, 0, test.w, test.h)
     love.graphics.setColor(255, 255, 255)
-    love.graphics.printf("Don't press ACTION", x, h / 2, w, "center")
+    love.graphics.printf("Don't press ACTION", test.x, test.h / 2, test.w, "center")
     if not test.win then
-        love.graphics.printf("Oops!", x, h / 3, w, "center")
+        love.graphics.printf("Oops!", test.x, test.h / 3, test.w, "center")
     end
 end
 

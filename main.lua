@@ -60,7 +60,7 @@ local heart
 
 function love.load()
     love.mouse.setVisible(false)
-    
+
     bindings = {pl = {left = "a", right = "d", up = "w", down = "s", action = "f"},
                 pr = {left = "left", right = "right", up = "up", down = "down", action = "return"}}
     screenCenter.x = love.graphics.getWidth() / 2
@@ -125,8 +125,8 @@ function splitScreen:enter()
 
     playtime = time8beats
 
-    print(splitScreen.left.load())
-    print(splitScreen.right.load())
+    splitScreen.left.load(0, screenCenter.x, screenCenter.y * 2)
+    splitScreen.right.load(screenCenter.x, screenCenter.x, screenCenter.y * 2)
 end
 
 function splitScreen:leave()
@@ -161,8 +161,8 @@ function splitScreen:update(dt)
 end
 
 function splitScreen:draw()
-    splitScreen.left.draw(0, screenCenter.x, screenCenter.y * 2)
-    splitScreen.right.draw(screenCenter.x, screenCenter.x, screenCenter.y * 2)
+    splitScreen.left.draw()
+    splitScreen.right.draw()
 
     local beats_left = math.floor(playtime/time8beats*8)
     if beats_left <= 3 then
@@ -227,15 +227,15 @@ function rest:resume()
     else
         music.lose:play()
     end
-    
+
     games_played = games_played + 1
-    
+
     resttime = time4beats
 end
 
 function rest:update(dt)
     local playnext = true
-    
+
     -- wait while win/lose tune plays, then play the next appropriate thing
     if resttime > 0 then
         resttime = resttime - dt
@@ -246,13 +246,13 @@ function rest:update(dt)
             set_timescale(1)
             music.gameover:play()
             Gamestate.pop()
-            
+
         -- incoming boss: insert boss warning before nexttime
         elseif games_played % boss_interval == 0 and games_played ~= 0 then
             warn_of_boss = true
             music.boss:play()
             warntime = time8beats
-            
+
         -- speed up: insert speed warning before nexttime
         elseif games_played % faster_interval == 0 and games_played ~= 0 then
             warn_of_faster = true
@@ -260,13 +260,13 @@ function rest:update(dt)
             warntime = time8beats
             timescale = timescale + faster_inc
             set_timescale(timescale)
-        
+
         -- nothing special. just move to next minigame.
         else
             nexttime = time4beats
         end
     end
-    
+
     -- wait while warning plays, then proceed to nexttime
     if warntime > 0 then
         warntime = warntime - dt
@@ -314,7 +314,7 @@ function rest:draw()
             love.graphics.setFont(generictext)
             love.graphics.printf("-1 life", screenCenter.x, screenCenter.y + 50, screenCenter.x, "center", 0, 1, 1, 0, generictext:getHeight() / 1.7)
         end
-        
+
         if warn_of_faster then
             love.graphics.setColor(color.white)
             love.graphics.draw(graphics.faster_sign, screenCenter.x, screenCenter.y-200, 0, 1, 1, graphics.faster_sign:getWidth() / 2, graphics.faster_sign:getHeight() / 2)
@@ -325,11 +325,11 @@ function rest:draw()
     else
         love.graphics.printf("Let's play!", 0, screenCenter.y, screenCenter.x * 2, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
     end
-    
+
     love.graphics.setColor(color.white)
     love.graphics.setFont(generictext)
     love.graphics.printf("(Games played: "..games_played..")", 0, screenCenter.y + 200, screenCenter.x * 2, "center", 0, 1, 1, 0, generictext:getHeight() / 1.7)
-    
+
     love.graphics.setFont(bigtext)
     love.graphics.setColor(color.white)
     love.graphics.draw(heart, screenCenter.x, screenCenter.y / 4, 0, heartScale, heartScale, heart:getWidth() / 2, heart:getHeight() / 2)
