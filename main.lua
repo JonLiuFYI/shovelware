@@ -31,8 +31,14 @@ local playtime = -999       -- Wait this long before quitting splitscreen miniga
 
 -- game phase timing stuff
 local faster_interval = 2   -- play 5 games, then get faster
+local faster_inc = 0.05     -- add to timescale by this much every faster_interval
+local warn_of_faster = false   -- display a warning that the game is getting faster
 local boss_interval = 6    -- play 15 games, then play a boss. (don't get faster.)
+local warn_of_boss = false  -- display a waning that a boss is coming up
 local games_played = 0      -- we've played this many games so far
+
+-- graphics for in-game
+local graphics = {}
 
 -- fonts
 bigtext = love.graphics.newFont("assets/op-b.ttf", 64)
@@ -52,6 +58,8 @@ local heart
 
 
 function love.load()
+    love.mouse.setVisible(false)
+    
     bindings = {pl = {left = "a", right = "d", up = "w", down = "s", action = "f"},
                 pr = {left = "left", right = "right", up = "up", down = "down", action = "return"}}
     screenCenter.x = love.graphics.getWidth() / 2
@@ -68,6 +76,10 @@ function love.load()
         lose = love.audio.newSource("assets/sw_lose.wav"),
         nextgame = love.audio.newSource("assets/sw_next.wav"),
         win = love.audio.newSource("assets/sw_win.wav")
+    }
+    graphics = {
+        faster_sign = love.graphics.newImage("assets/faster.png"),
+        boss_sign = love.graphics.newImage("assets/boss.png")
     }
     tick.framerate = 60
     set_timescale(timescale)
@@ -182,7 +194,7 @@ end
 
 -- Rest gamestate -------------------------------------------------------
 function rest:enter()
-
+    set_timescale(1)    -- gotta reset properly
     resttime = time8beats
 
     heart = love.graphics.newImage("assets/heart.png")
@@ -225,18 +237,23 @@ function rest:update(dt)
         resttime = -999
         -- no more lives. game over. Leave this state.
         if rest.lives <= 0 then
+            set_timescale(1)
             music.gameover:play()
             Gamestate.pop()
             
         -- incoming boss: insert boss warning before nexttime
         elseif games_played % boss_interval == 0 and games_played ~= 0 then
+            warn_of_boss = true
             music.boss:play()
             warntime = time8beats
             
         -- speed up: insert speed warning before nexttime
         elseif games_played % faster_interval == 0 and games_played ~= 0 then
+            warn_of_faster = true
             music.faster:play()
             warntime = time8beats
+            timescale = timescale + faster_inc
+            set_timescale(timescale)
         
         -- nothing special. just move to next minigame.
         else
@@ -248,6 +265,8 @@ function rest:update(dt)
     if warntime > 0 then
         warntime = warntime - dt
     elseif -999 < warntime and warntime <= 0 then
+        warn_of_boss = false
+        warn_of_faster = false
         nexttime = time4beats
         warntime = -999
     end
@@ -288,6 +307,14 @@ function rest:draw()
             love.graphics.printf("Miss!", screenCenter.x, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
             love.graphics.setFont(generictext)
             love.graphics.printf("-1 life", screenCenter.x, screenCenter.y + 50, screenCenter.x, "center", 0, 1, 1, 0, generictext:getHeight() / 1.7)
+        end
+        
+        if warn_of_faster then
+            love.graphics.setColor(color.white)
+            love.graphics.draw(graphics.faster_sign, screenCenter.x, screenCenter.y-200, 0, 1, 1, graphics.faster_sign:getWidth() / 2, graphics.faster_sign:getHeight() / 2)
+        elseif warn_of_boss then
+            love.graphics.setColor(color.white)
+            love.graphics.draw(graphics.boss_sign, screenCenter.x, screenCenter.y-200, 0, 1, 1, graphics.boss_sign:getWidth() / 2, graphics.boss_sign:getHeight() / 2)
         end
     else
         love.graphics.printf("Let's play!", 0, screenCenter.y, screenCenter.x * 2, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
