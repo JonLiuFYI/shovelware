@@ -14,7 +14,7 @@ function bla.keypressed(key, pBindings)
     end
 end
 
-function bla.update(dt)
+function bla.update(dt, pBindings)
 
 end
 

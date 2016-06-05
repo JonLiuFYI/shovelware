@@ -14,7 +14,7 @@ function test.keypressed(key, pBindings)
     end
 end
 
-function test.update(dt)
+function test.update(dt, pBindings)
 
 end
 

@@ -156,8 +156,8 @@ function splitScreen:update(dt)
         Gamestate.pop()
     end
 
-    splitScreen.left.update(dt)
-    splitScreen.right.update(dt)
+    splitScreen.left.update(dt, bindings.pl)
+    splitScreen.right.update(dt, bindings.pr)
 end
 
 function splitScreen:draw()
@@ -190,7 +190,7 @@ function boss:keypressed(key)
 end
 
 function boss:update(dt)
-    boss.game.update(dt)
+    boss.game.update(dt, bindings)
 end
 
 function boss:draw()
