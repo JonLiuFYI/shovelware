@@ -14,13 +14,13 @@ function test.update(dt)
 
 end
 
-function test.draw(x1, x2, y)
+function test.draw(x, w, h)
     love.graphics.setColor(100, 100, 0)
-    love.graphics.rectangle("fill", x1, 0, x2-x1, y)
+    love.graphics.rectangle("fill", x, 0, w, h)
     love.graphics.setColor(255, 255, 255)
-    love.graphics.printf("Don't press ACTION", x1, y / 2, x2 - x1, "center")
+    love.graphics.printf("Don't press ACTION", x, h / 2, w, "center")
     if not test.win then
-        love.graphics.printf("Oops!", x1, y / 3, x2 - x1, "center")
+        love.graphics.printf("Oops!", x, h / 3, w, "center")
     end
 end
 

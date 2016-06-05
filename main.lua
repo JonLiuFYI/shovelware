@@ -138,11 +138,11 @@ end
 
 function splitScreen:draw()
     splitScreen.left.draw(0, screenCenter.x, screenCenter.y * 2)
-    splitScreen.right.draw(screenCenter.x, screenCenter.x * 2, screenCenter.y * 2)
+    splitScreen.right.draw(screenCenter.x, screenCenter.x, screenCenter.y * 2)
 
     local beats_left = math.floor(playtime/time8beats*8)
     if beats_left <= 3 then
-        love.graphics.printf(beats_left, screenCenter.x / 2, 600, 900, "center")
+        love.graphics.printf(math.max(beats_left, 0), 0, screenCenter.y * 2 / 4 * 3, screenCenter.x * 2, "center")
     end
 end
 --------------------------------------------------------------------------------

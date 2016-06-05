@@ -36,8 +36,8 @@ function foo.update(dt)
 
 end
 
-function foo.draw(x1, x2, y)
-    love.graphics.print("It Works", x2 / 2, y / 2)
+function foo.draw(x, w, h)
+    love.graphics.printf("It Works", x, h / 2, w, "center")
 end
 
 return foo
