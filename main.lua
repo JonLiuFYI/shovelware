@@ -14,8 +14,8 @@ local screenCenter = {}
 local bindings = {}
 
 local color = {
-    holoblue = {51, 181, 229},
-    loserred = {217, 69, 69},
+    playerblue = {51, 181, 229},
+    playerred = {217, 69, 69},
     white = {255, 255, 255}
 }
 
@@ -25,8 +25,20 @@ local timescale = 1               -- represents the speed of the game. timescale
 local time4beats = 2.122    -- time in seconds, scaled by timescale
 local time8beats = 4.256
 local resttime = -999       -- Wait this long once rest is started. -999 is a magic sentinel value.
+local warntime = -999       -- Wait this long while a warning is playing.
 local nexttime = -999       -- Wait this long before starting next.
 local playtime = -999       -- Wait this long before quitting splitscreen minigames.
+
+-- game phase timing stuff
+local faster_interval = 2   -- play 5 games, then get faster
+local faster_inc = 0.05     -- add to timescale by this much every faster_interval
+local warn_of_faster = false   -- display a warning that the game is getting faster
+local boss_interval = 6    -- play 15 games, then play a boss. (don't get faster.)
+local warn_of_boss = false  -- display a waning that a boss is coming up
+local games_played = 0      -- we've played this many games so far
+
+-- graphics for in-game
+local graphics = {}
 
 -- fonts
 bigtext = love.graphics.newFont("assets/op-b.ttf", 64)
@@ -46,6 +58,8 @@ local heart
 
 
 function love.load()
+    love.mouse.setVisible(false)
+    
     bindings = {pl = {left = "a", right = "d", up = "w", down = "s", action = "f"},
                 pr = {left = "left", right = "right", up = "up", down = "down", action = "return"}}
     screenCenter.x = love.graphics.getWidth() / 2
@@ -62,6 +76,10 @@ function love.load()
         lose = love.audio.newSource("assets/sw_lose.wav"),
         nextgame = love.audio.newSource("assets/sw_next.wav"),
         win = love.audio.newSource("assets/sw_win.wav")
+    }
+    graphics = {
+        faster_sign = love.graphics.newImage("assets/faster.png"),
+        boss_sign = love.graphics.newImage("assets/boss.png")
     }
     tick.framerate = 60
     set_timescale(timescale)
@@ -176,7 +194,7 @@ end
 
 -- Rest gamestate -------------------------------------------------------
 function rest:enter()
-
+    set_timescale(1)    -- gotta reset properly
     resttime = time8beats
 
     heart = love.graphics.newImage("assets/heart.png")
@@ -184,7 +202,7 @@ function rest:enter()
 
     resttime = time8beats
 
-    rest.lives = 1
+    rest.lives = 2
     rest.lastWin = {}
     rest.fromMenu = true
     music.begin:play()
@@ -198,33 +216,68 @@ end
 function rest:resume()
     rest.fromMenu = false
     -- play the right music based on how the team played. Then start the countdown to next game.
-
     if rest.lastWin.pl and rest.lastWin.pr then
         music.win:play()
     else
         music.lose:play()
     end
-
+    
+    games_played = games_played + 1
+    
     resttime = time4beats
 end
 
 function rest:update(dt)
+    local playnext = true
+    
+    -- wait while win/lose tune plays, then play the next appropriate thing
     if resttime > 0 then
         resttime = resttime - dt
     elseif -999 < resttime and resttime <= 0 then
         resttime = -999
+        -- no more lives. game over. Leave this state.
         if rest.lives <= 0 then
+            set_timescale(1)
             music.gameover:play()
             Gamestate.pop()
+            
+        -- incoming boss: insert boss warning before nexttime
+        elseif games_played % boss_interval == 0 and games_played ~= 0 then
+            warn_of_boss = true
+            music.boss:play()
+            warntime = time8beats
+            
+        -- speed up: insert speed warning before nexttime
+        elseif games_played % faster_interval == 0 and games_played ~= 0 then
+            warn_of_faster = true
+            music.faster:play()
+            warntime = time8beats
+            timescale = timescale + faster_inc
+            set_timescale(timescale)
+        
+        -- nothing special. just move to next minigame.
         else
-            music.nextgame:play()
             nexttime = time4beats
         end
     end
+    
+    -- wait while warning plays, then proceed to nexttime
+    if warntime > 0 then
+        warntime = warntime - dt
+    elseif -999 < warntime and warntime <= 0 then
+        warn_of_boss = false
+        warn_of_faster = false
+        nexttime = time4beats
+        warntime = -999
+    end
 
+    -- wait while next tune plays, then move to minigames
     if nexttime > 0 then
+        if playnext then music.nextgame:play() end
+        playnext = false
         nexttime = nexttime - dt
     elseif -999 < nexttime and nexttime <= 0 then
+        love.audio.stop()
         Gamestate.push(splitScreen)
         nexttime = -999
     end
@@ -233,23 +286,44 @@ end
 function rest:draw()
     if not rest.fromMenu then
         if rest.lastWin.pl then
-            love.graphics.setColor(color.holoblue)
-            love.graphics.printf("L won!", 0, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
+            love.graphics.setColor(color.playerblue)
+            love.graphics.setFont(bigtext)
+            love.graphics.printf("Pass!", 0, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
         elseif not rest.lastWin.pl then
-            love.graphics.setColor(color.loserred)
-            love.graphics.printf("L lost!", 0, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
+            love.graphics.setColor(color.white)
+            love.graphics.setFont(bigtext)
+            love.graphics.printf("Miss!", 0, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
+            love.graphics.setFont(generictext)
+            love.graphics.printf("-1 life", 0, screenCenter.y + 50, screenCenter.x, "center", 0, 1, 1, 0, generictext:getHeight() / 1.7)
         end
 
         if rest.lastWin.pr then
-            love.graphics.setColor(color.holoblue)
-            love.graphics.printf("R won!", screenCenter.x, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
+            love.graphics.setColor(color.playerred)
+            love.graphics.setFont(bigtext)
+            love.graphics.printf("Pass!", screenCenter.x, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
         elseif not rest.lastWin.pr then
-            love.graphics.setColor(color.loserred)
-            love.graphics.printf("R lost!", screenCenter.x, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
+            love.graphics.setColor(color.white)
+            love.graphics.setFont(bigtext)
+            love.graphics.printf("Miss!", screenCenter.x, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
+            love.graphics.setFont(generictext)
+            love.graphics.printf("-1 life", screenCenter.x, screenCenter.y + 50, screenCenter.x, "center", 0, 1, 1, 0, generictext:getHeight() / 1.7)
+        end
+        
+        if warn_of_faster then
+            love.graphics.setColor(color.white)
+            love.graphics.draw(graphics.faster_sign, screenCenter.x, screenCenter.y-200, 0, 1, 1, graphics.faster_sign:getWidth() / 2, graphics.faster_sign:getHeight() / 2)
+        elseif warn_of_boss then
+            love.graphics.setColor(color.white)
+            love.graphics.draw(graphics.boss_sign, screenCenter.x, screenCenter.y-200, 0, 1, 1, graphics.boss_sign:getWidth() / 2, graphics.boss_sign:getHeight() / 2)
         end
     else
         love.graphics.printf("Let's play!", 0, screenCenter.y, screenCenter.x * 2, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
     end
+    
+    love.graphics.setColor(color.white)
+    love.graphics.setFont(generictext)
+    love.graphics.printf("(Games played: "..games_played..")", 0, screenCenter.y + 200, screenCenter.x * 2, "center", 0, 1, 1, 0, generictext:getHeight() / 1.7)
+    
     love.graphics.setFont(bigtext)
     love.graphics.setColor(color.white)
     love.graphics.draw(heart, screenCenter.x, screenCenter.y / 4, 0, heartScale, heartScale, heart:getWidth() / 2, heart:getHeight() / 2)
