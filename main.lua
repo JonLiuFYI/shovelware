@@ -39,6 +39,7 @@ local games_played = 0      -- we've played this many games so far
 
 -- graphics for in-game
 local graphics = {}
+local graphics_scale = {}   -- scaling ratios for resolution independence
 
 -- fonts
 bigtext = love.graphics.newFont("assets/op-b.ttf", 64)
@@ -80,6 +81,11 @@ function love.load()
     graphics = {
         faster_sign = love.graphics.newImage("assets/faster.png"),
         boss_sign = love.graphics.newImage("assets/boss.png")
+    }
+    -- TODO: don't manually handle graphics_scale like this. use a for loop like a smart person.
+    graphics_scale = {
+        faster_sign = (love.graphics.getHeight() / 3) / graphics.faster_sign:getHeight(),
+        boss_sign = (love.graphics.getHeight() / 3) / graphics.boss_sign:getHeight()
     }
     tick.framerate = 60
     set_timescale(timescale)
