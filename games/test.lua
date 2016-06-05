@@ -2,6 +2,7 @@ local test = {}
 
 function test.load()
     test.win = true
+    test.instruction = "Obey!"
 end
 
 function test.keypressed(key, pBindings)
