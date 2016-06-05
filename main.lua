@@ -57,7 +57,6 @@ end
 local logo
 local heart
 
-
 function love.load()
     love.mouse.setVisible(false)
 
@@ -165,6 +164,10 @@ end
 function splitScreen:draw()
     splitScreen.left.draw()
     splitScreen.right.draw()
+
+    love.graphics.setColor(color.white)
+    love.graphics.printf(splitScreen.left.instruction, 0, screenCenter.y-400, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
+    love.graphics.printf(splitScreen.right.instruction, screenCenter.x, screenCenter.y-400, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
 
     local beats_left = math.floor(playtime/time8beats*8)
     if beats_left <= 3 then
