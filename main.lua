@@ -30,10 +30,10 @@ local nexttime = -999       -- Wait this long before starting next.
 local playtime = -999       -- Wait this long before quitting splitscreen minigames.
 
 -- game phase timing stuff
-local faster_interval = 2   -- play 5 games, then get faster
+local faster_interval = 3   -- play 5 games, then get faster
 local faster_inc = 0.05     -- add to timescale by this much every faster_interval
 local warn_of_faster = false   -- display a warning that the game is getting faster
-local boss_interval = 6    -- play 15 games, then play a boss. (don't get faster.)
+local boss_interval = 999    -- play 15 games, then play a boss. (don't get faster.)
 local warn_of_boss = false  -- display a waning that a boss is coming up
 local games_played = 0      -- we've played this many games so far
 
@@ -103,6 +103,10 @@ end
 
 function menu:draw()
     love.graphics.draw(logo, screenCenter.x, screenCenter.y / 1.5, 0, logoScale, logoScale, logo:getWidth() / 2, logo:getHeight() / 2)
+    
+    love.graphics.setFont(generictext)
+    love.graphics.printf("First presented at\nWaterloo Summer Game Jam 2016", 0, screenCenter.y * 1, screenCenter.x * 2, "center", 0, 1, 1, 0, generictext:getHeight() / 1.7)
+    
     love.graphics.setFont(generictext)
     love.graphics.printf("press ENTER", 0, screenCenter.y * 1.5, screenCenter.x * 2, "center", 0, 1, 1, 0, generictext:getHeight() / 1.7)
 end
