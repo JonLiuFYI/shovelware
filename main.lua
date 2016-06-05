@@ -203,7 +203,8 @@ end
 -- Rest gamestate -------------------------------------------------------
 function rest:enter()
     set_timescale(1)    -- gotta reset properly
-    resttime = time8beats
+    
+    games_played = 0
 
     heart = love.graphics.newImage("assets/heart.png")
     heartScale = (love.graphics.getHeight() / 6) / heart:getHeight()
@@ -227,6 +228,9 @@ function rest:resume()
     if rest.lastWin.pl and rest.lastWin.pr then
         music.win:play()
     else
+        if rest.lives <= 0 then
+            set_timescale(1)
+        end
         music.lose:play()
     end
 
@@ -245,7 +249,6 @@ function rest:update(dt)
         resttime = -999
         -- no more lives. game over. Leave this state.
         if rest.lives <= 0 then
-            set_timescale(1)
             music.gameover:play()
             Gamestate.pop()
 
