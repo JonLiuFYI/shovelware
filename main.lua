@@ -57,7 +57,6 @@ end
 local logo
 local heart
 
-
 function love.load()
     love.mouse.setVisible(false)
 
@@ -166,6 +165,10 @@ function splitScreen:draw()
     splitScreen.left.draw()
     splitScreen.right.draw()
 
+    love.graphics.setColor(color.white)
+    love.graphics.printf(splitScreen.left.instruction, 0, screenCenter.y-400, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
+    love.graphics.printf(splitScreen.right.instruction, screenCenter.x, screenCenter.y-400, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
+
     local beats_left = math.floor(playtime/time8beats*8)
     if beats_left <= 3 then
         love.graphics.printf(math.max(beats_left, 0), 0, screenCenter.y * 2 / 4 * 3, screenCenter.x * 2, "center")
@@ -203,7 +206,8 @@ end
 -- Rest gamestate -------------------------------------------------------
 function rest:enter()
     set_timescale(1)    -- gotta reset properly
-    resttime = time8beats
+    
+    games_played = 0
 
     heart = love.graphics.newImage("assets/heart.png")
     heartScale = (love.graphics.getHeight() / 6) / heart:getHeight()
@@ -227,6 +231,9 @@ function rest:resume()
     if rest.lastWin.pl and rest.lastWin.pr then
         music.win:play()
     else
+        if rest.lives <= 0 then
+            set_timescale(1)
+        end
         music.lose:play()
     end
 
@@ -245,7 +252,6 @@ function rest:update(dt)
         resttime = -999
         -- no more lives. game over. Leave this state.
         if rest.lives <= 0 then
-            set_timescale(1)
             music.gameover:play()
             Gamestate.pop()
 
