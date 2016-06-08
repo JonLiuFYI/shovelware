@@ -59,8 +59,6 @@ function set_timescale(speed)
     end
 end
 
-local logo
-
 function love.load()
     love.mouse.setVisible(false)
 
@@ -93,12 +91,15 @@ function love.load()
     graphics = {
         faster_sign = love.graphics.newImage("assets/faster.png"),
         boss_sign = love.graphics.newImage("assets/boss.png"),
-        heart = love.graphics.newImage("assets/heart.png")
+        heart = love.graphics.newImage("assets/heart.png"),
+        logo = love.graphics.newImage("assets/logo.png")
     }
-    -- TODO: don't manually handle graphics_scale like this. use a for loop like a smart person.
+    -- TODO: unite graphics_scale and graphics because it makes no sense for these two to be separate.
     graphics_scale = {
         faster_sign = (love.graphics.getHeight() / 3) / graphics.faster_sign:getHeight(),
-        boss_sign = (love.graphics.getHeight() / 3) / graphics.boss_sign:getHeight()
+        boss_sign = (love.graphics.getHeight() / 3) / graphics.boss_sign:getHeight(),
+        heart = (love.graphics.getHeight() / 6) / graphics.heart:getHeight(),
+        logo = (love.graphics.getHeight() / 4) / graphics.logo:getHeight()
     }
     tick.framerate = 60
     set_timescale(timescale)
@@ -109,12 +110,10 @@ end
 
 -- Menu gamestate --------------------------------------------------------------
 function menu:enter()
-    logo = love.graphics.newImage("assets/logo.png")
-    logoScale = (love.graphics.getHeight() / 4) / logo:getHeight()
 end
 
 function menu:draw()
-    love.graphics.draw(logo, screenCenter.x, screenCenter.y / 1.5, 0, logoScale, logoScale, logo:getWidth() / 2, logo:getHeight() / 2)
+    love.graphics.draw(graphics.logo, screenCenter.x, screenCenter.y / 1.5, 0, graphics_scale.logo, graphics_scale.logo, graphics.logo:getWidth() / 2, graphics.logo:getHeight() / 2)
     
     love.graphics.setFont(generictext)
     love.graphics.printf("First presented at\nWaterloo Summer Game Jam 2016", 0, screenCenter.y * 1, screenCenter.x * 2, "center", 0, 1, 1, 0, generictext:getHeight() / 1.7)
@@ -179,7 +178,7 @@ function splitScreen:update(dt)
     splitScreen.right.update(dt, bindings.pr)
 end
 
--- TODO: organize these variables
+-- these two variables track when a beat has passed. Used in splitScreen:draw().
 local old_beats_left = 4
 local beats_left = 3
 function splitScreen:draw()
@@ -234,8 +233,6 @@ function rest:enter()
     set_timescale(timescale)    -- gotta reset properly
     
     games_played = 0
-
-    heartScale = (love.graphics.getHeight() / 6) / graphics.heart:getHeight() -- TODO: put this into graphics scale table
 
     resttime = time8beats
 
@@ -369,7 +366,7 @@ function rest:draw()
 
     love.graphics.setFont(bigtext)
     love.graphics.setColor(color.white)
-    love.graphics.draw(graphics.heart, screenCenter.x, screenCenter.y / 4, 0, heartScale, heartScale, graphics.heart:getWidth() / 2, graphics.heart:getHeight() / 2)
+    love.graphics.draw(graphics.heart, screenCenter.x, screenCenter.y / 4, 0, graphics_scale.heart, graphics_scale.heart, graphics.heart:getWidth() / 2, graphics.heart:getHeight() / 2)
     love.graphics.printf(math.max(rest.lives, 0), 0, screenCenter.y / 4, screenCenter.x * 2, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
 end
 --------------------------------------------------------------------------------
