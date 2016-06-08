@@ -60,7 +60,6 @@ function set_timescale(speed)
 end
 
 local logo
-local heart
 
 function love.load()
     love.mouse.setVisible(false)
@@ -81,7 +80,6 @@ function love.load()
         lose = love.audio.newSource("assets/sw_lose.wav"),
         nextgame = love.audio.newSource("assets/sw_next.wav"),
         tick = love.audio.newSource("assets/tick.wav"),
-        tock = love.audio.newSource("assets/tock.wav"),
         win = love.audio.newSource("assets/sw_win.wav")
     }
     minigame_bgm = {
@@ -94,7 +92,8 @@ function love.load()
     }
     graphics = {
         faster_sign = love.graphics.newImage("assets/faster.png"),
-        boss_sign = love.graphics.newImage("assets/boss.png")
+        boss_sign = love.graphics.newImage("assets/boss.png"),
+        heart = love.graphics.newImage("assets/heart.png")
     }
     -- TODO: don't manually handle graphics_scale like this. use a for loop like a smart person.
     graphics_scale = {
@@ -236,8 +235,7 @@ function rest:enter()
     
     games_played = 0
 
-    heart = love.graphics.newImage("assets/heart.png")
-    heartScale = (love.graphics.getHeight() / 6) / heart:getHeight()
+    heartScale = (love.graphics.getHeight() / 6) / graphics.heart:getHeight() -- TODO: put this into graphics scale table
 
     resttime = time8beats
 
@@ -371,7 +369,7 @@ function rest:draw()
 
     love.graphics.setFont(bigtext)
     love.graphics.setColor(color.white)
-    love.graphics.draw(heart, screenCenter.x, screenCenter.y / 4, 0, heartScale, heartScale, heart:getWidth() / 2, heart:getHeight() / 2)
+    love.graphics.draw(graphics.heart, screenCenter.x, screenCenter.y / 4, 0, heartScale, heartScale, graphics.heart:getWidth() / 2, graphics.heart:getHeight() / 2)
     love.graphics.printf(math.max(rest.lives, 0), 0, screenCenter.y / 4, screenCenter.x * 2, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
 end
 --------------------------------------------------------------------------------
