@@ -180,6 +180,9 @@ function splitScreen:update(dt)
     splitScreen.right.update(dt, bindings.pr)
 end
 
+-- TODO: organize these variables
+local old_beats_left = 4
+local beats_left = 3
 function splitScreen:draw()
     splitScreen.left.draw()
     splitScreen.right.draw()
@@ -187,10 +190,14 @@ function splitScreen:draw()
     love.graphics.setColor(color.white)
     love.graphics.printf(splitScreen.left.instruction, 0, screenCenter.y-400, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
     love.graphics.printf(splitScreen.right.instruction, screenCenter.x, screenCenter.y-400, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
-
-    local beats_left = math.floor(playtime/time8beats*8)
+    
+    old_beats_left = beats_left
+    beats_left = math.max(math.floor(playtime/time8beats*8), 0)
     if beats_left <= 3 then
         love.graphics.printf(math.max(beats_left, 0), 0, screenCenter.y * 2 / 4 * 3, screenCenter.x * 2, "center")
+        if beats_left < old_beats_left then
+            music.tick:play()
+        end
     end
 end
 --------------------------------------------------------------------------------
