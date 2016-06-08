@@ -38,6 +38,9 @@ local boss_interval = 999    -- play 15 games, then play a boss. (don't get fast
 local warn_of_boss = false  -- display a waning that a boss is coming up
 local games_played = 0      -- we've played this many games so far
 
+local next_game = {}
+local show_next_instruction = false
+
 -- graphics for in-game
 local graphics = {}
 local graphics_scale = {}   -- scaling ratios for resolution independence
@@ -133,23 +136,17 @@ end
 
 -- SplitScreen gamestate -------------------------------------------------------
 function splitScreen:enter()
-    -- load two games. don't let them be the same.
-    splitScreen.left = require("games/" .. games[love.math.random(#games)]:sub(1, -5))
-    repeat
-        splitScreen.right = require("games/" .. games[love.math.random(#games)]:sub(1, -5))
-    until splitScreen.right ~= splitScreen.left
-
     playtime = time8beats
     
     love.audio.play(minigame_bgm[love.math.random(#minigame_bgm)])
 
-    splitScreen.left.load(0, screenCenter.x, screenCenter.y * 2)
-    splitScreen.right.load(screenCenter.x, screenCenter.x, screenCenter.y * 2)
+    next_game.l.load(0, screenCenter.x, screenCenter.y * 2)
+    next_game.r.load(screenCenter.x, screenCenter.x, screenCenter.y * 2)
 end
 
 function splitScreen:leave()
-    rest.lastWin.pl = splitScreen.left.win
-    rest.lastWin.pr = splitScreen.right.win
+    rest.lastWin.pl = next_game.l.win
+    rest.lastWin.pr = next_game.r.win
     if not rest.lastWin.pl then
         rest.lives = rest.lives - 1
     end
@@ -162,8 +159,8 @@ function splitScreen:leave()
 end
 
 function splitScreen:keypressed(key)
-    splitScreen.left.keypressed(key, bindings.pl)
-    splitScreen.right.keypressed(key, bindings.pr)
+    next_game.l.keypressed(key, bindings.pl)
+    next_game.r.keypressed(key, bindings.pr)
 end
 
 function splitScreen:update(dt)
@@ -174,20 +171,16 @@ function splitScreen:update(dt)
         Gamestate.pop()
     end
 
-    splitScreen.left.update(dt, bindings.pl)
-    splitScreen.right.update(dt, bindings.pr)
+    next_game.l.update(dt, bindings.pl)
+    next_game.r.update(dt, bindings.pr)
 end
 
 -- these two variables track when a beat has passed. Used in splitScreen:draw().
 local old_beats_left = 4
 local beats_left = 3
 function splitScreen:draw()
-    splitScreen.left.draw()
-    splitScreen.right.draw()
-
-    love.graphics.setColor(color.white)
-    love.graphics.printf(splitScreen.left.instruction, 0, screenCenter.y-400, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
-    love.graphics.printf(splitScreen.right.instruction, screenCenter.x, screenCenter.y-400, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
+    next_game.l.draw()
+    next_game.r.draw()
     
     old_beats_left = beats_left
     beats_left = math.max(math.floor(playtime/time8beats*8), 0)
@@ -292,6 +285,12 @@ function rest:update(dt)
         -- nothing special. just move to next minigame.
         else
             nexttime = time4beats
+            -- load two games. don't let them be the same.
+            next_game.l = require("games/" .. games[love.math.random(#games)]:sub(1, -5))
+            repeat
+                next_game.r = require("games/" .. games[love.math.random(#games)]:sub(1, -5))
+            until next_game.r ~= next_game.l
+            show_next_instruction = true
         end
     end
 
