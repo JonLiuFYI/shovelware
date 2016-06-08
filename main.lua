@@ -53,6 +53,10 @@ function set_timescale(speed)
     music.lose:setPitch(speed)
     music.nextgame:setPitch(speed)
     music.win:setPitch(speed)
+    
+    for i,x in ipairs(minigame_bgm) do
+        x:setPitch(speed)
+    end
 end
 
 local logo
@@ -138,6 +142,8 @@ function splitScreen:enter()
     until splitScreen.right ~= splitScreen.left
 
     playtime = time8beats
+    
+    love.audio.play(minigame_bgm[love.math.random(#minigame_bgm)])
 
     splitScreen.left.load(0, screenCenter.x, screenCenter.y * 2)
     splitScreen.right.load(screenCenter.x, screenCenter.x, screenCenter.y * 2)
