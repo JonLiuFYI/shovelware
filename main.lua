@@ -21,6 +21,7 @@ local color = {
 
 -- music timing stuff
 local music = {}
+local minigame_bgm = {}
 local timescale = 1               -- represents the speed of the game. timescale = 1.5 means 1.5 times the speed.
 local time4beats = 2.122    -- time in seconds, scaled by timescale
 local time8beats = 4.256
@@ -78,6 +79,14 @@ function love.load()
         tick = love.audio.newSource("assets/tick.wav"),
         tock = love.audio.newSource("assets/tock.wav"),
         win = love.audio.newSource("assets/sw_win.wav")
+    }
+    minigame_bgm = {
+        love.audio.newSource("assets/sw_a_brief_romance.wav"),
+        love.audio.newSource("assets/sw_a_misstep.wav"),
+        love.audio.newSource("assets/sw_a_offbeat.wav"),
+        love.audio.newSource("assets/sw_a_sadaghdar.wav"),
+        love.audio.newSource("assets/sw_b_diurnal_crush.wav"),
+        love.audio.newSource("assets/sw_b_nocturnal_strike.wav")
     }
     graphics = {
         faster_sign = love.graphics.newImage("assets/faster.png"),
@@ -209,7 +218,8 @@ end
 
 -- Rest gamestate -------------------------------------------------------
 function rest:enter()
-    set_timescale(1)    -- gotta reset properly
+    timescale = 1
+    set_timescale(timescale)    -- gotta reset properly
     
     games_played = 0
 
@@ -270,8 +280,6 @@ function rest:update(dt)
             warn_of_faster = true
             music.faster:play()
             warntime = time8beats
-            timescale = timescale + faster_inc
-            set_timescale(timescale)
 
         -- nothing special. just move to next minigame.
         else
@@ -283,6 +291,12 @@ function rest:update(dt)
     if warntime > 0 then
         warntime = warntime - dt
     elseif -999 < warntime and warntime <= 0 then
+        -- play speed warning before speed up occurs
+        if warn_of_faster then
+            timescale = timescale + faster_inc
+            set_timescale(timescale)
+        end
+        
         warn_of_boss = false
         warn_of_faster = false
         nexttime = time4beats
