@@ -46,8 +46,8 @@ local graphics = {}
 local graphics_scale = {}   -- scaling ratios for resolution independence
 
 -- fonts
-bigtext = love.graphics.newFont("assets/op-b.ttf", 64)
-generictext = love.graphics.newFont("assets/op-l.ttf", 40)
+bigtext = love.graphics.newFont("assets/fonts/Rubik-Bold.ttf", 64)
+generictext = love.graphics.newFont("assets/fonts/Rubik-Light.ttf", 40)
 
 function set_timescale(speed)
     tick.timescale = speed
