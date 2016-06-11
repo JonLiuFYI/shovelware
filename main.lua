@@ -119,13 +119,14 @@ function menu:enter()
 end
 
 function menu:draw()
+    love.graphics.setColor(color.white)
     love.graphics.draw(graphics.logo, screenCenter.x, screenCenter.y / 1.5, 0, graphics_scale.logo, graphics_scale.logo, graphics.logo:getWidth() / 2, graphics.logo:getHeight() / 2)
     
     love.graphics.setFont(fonts.generic)
     love.graphics.printf("First presented at\nWaterloo Summer Game Jam 2016", 0, screenCenter.y * 1, screenCenter.x * 2, "center", 0, 1, 1, 0, fonts.generic:getHeight() / 1.7)
-    
-    love.graphics.setFont(fonts.generic)
     love.graphics.printf("press ENTER", 0, screenCenter.y * 1.5, screenCenter.x * 2, "center", 0, 1, 1, 0, fonts.generic:getHeight() / 1.7)
+    love.graphics.setColor(color.playerblue)
+    love.graphics.print("By Jon Liu and Andre Ostrovsky\ngithub.com/PocketEngi/shovelware", 50, 50)
 end
 
 function menu:keyreleased(key)
