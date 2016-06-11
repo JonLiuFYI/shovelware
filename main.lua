@@ -46,8 +46,7 @@ local graphics = {}
 local graphics_scale = {}   -- scaling ratios for resolution independence
 
 -- fonts
-bigtext = love.graphics.newFont("assets/fonts/Rubik-Bold.ttf", 64)
-generictext = love.graphics.newFont("assets/fonts/Rubik-Light.ttf", 40)
+fonts = {}
 
 function set_timescale(speed)
     tick.timescale = speed
@@ -69,6 +68,10 @@ function love.load()
                 pr = {left = "left", right = "right", up = "up", down = "down", action = "return"}}
     screenCenter.x = love.graphics.getWidth() / 2
     screenCenter.y = love.graphics.getHeight() / 2
+    
+    fonts.big = love.graphics.newFont("assets/fonts/Rubik-Bold.ttf", 64)
+    fonts.generic = love.graphics.newFont("assets/fonts/Rubik-Light.ttf", 40)
+    fonts.generic:setLineHeight(0.8)
 
     games = love.filesystem.getDirectoryItems("games")
     bosses = love.filesystem.getDirectoryItems("bosses")
@@ -116,13 +119,14 @@ function menu:enter()
 end
 
 function menu:draw()
+    love.graphics.setColor(color.white)
     love.graphics.draw(graphics.logo, screenCenter.x, screenCenter.y / 1.5, 0, graphics_scale.logo, graphics_scale.logo, graphics.logo:getWidth() / 2, graphics.logo:getHeight() / 2)
     
-    love.graphics.setFont(generictext)
-    love.graphics.printf("First presented at\nWaterloo Summer Game Jam 2016", 0, screenCenter.y * 1, screenCenter.x * 2, "center", 0, 1, 1, 0, generictext:getHeight() / 1.7)
-    
-    love.graphics.setFont(generictext)
-    love.graphics.printf("press ENTER", 0, screenCenter.y * 1.5, screenCenter.x * 2, "center", 0, 1, 1, 0, generictext:getHeight() / 1.7)
+    love.graphics.setFont(fonts.generic)
+    love.graphics.printf("First presented at\nWaterloo Summer Game Jam 2016", 0, screenCenter.y * 1, screenCenter.x * 2, "center", 0, 1, 1, 0, fonts.generic:getHeight() / 1.7)
+    love.graphics.printf("press ENTER", 0, screenCenter.y * 1.5, screenCenter.x * 2, "center", 0, 1, 1, 0, fonts.generic:getHeight() / 1.7)
+    love.graphics.setColor(color.playerblue)
+    love.graphics.print("By Jon Liu and Andre Ostrovsky\ngithub.com/PocketEngi/shovelware", 50, 50)
 end
 
 function menu:keyreleased(key)
@@ -326,26 +330,26 @@ function rest:draw()
     if not rest.fromMenu then
         if rest.lastWin.pl then
             love.graphics.setColor(color.playerblue)
-            love.graphics.setFont(bigtext)
-            love.graphics.printf("Pass!", 0, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
+            love.graphics.setFont(fonts.big)
+            love.graphics.printf("Pass!", 0, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
         elseif not rest.lastWin.pl then
             love.graphics.setColor(color.white)
-            love.graphics.setFont(bigtext)
-            love.graphics.printf("Miss!", 0, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
-            love.graphics.setFont(generictext)
-            love.graphics.printf("-1 life", 0, screenCenter.y + 50, screenCenter.x, "center", 0, 1, 1, 0, generictext:getHeight() / 1.7)
+            love.graphics.setFont(fonts.big)
+            love.graphics.printf("Miss!", 0, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
+            love.graphics.setFont(fonts.generic)
+            love.graphics.printf("-1 life", 0, screenCenter.y + 50, screenCenter.x, "center", 0, 1, 1, 0, fonts.generic:getHeight() / 1.7)
         end
 
         if rest.lastWin.pr then
             love.graphics.setColor(color.playerred)
-            love.graphics.setFont(bigtext)
-            love.graphics.printf("Pass!", screenCenter.x, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
+            love.graphics.setFont(fonts.big)
+            love.graphics.printf("Pass!", screenCenter.x, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
         elseif not rest.lastWin.pr then
             love.graphics.setColor(color.white)
-            love.graphics.setFont(bigtext)
-            love.graphics.printf("Miss!", screenCenter.x, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
-            love.graphics.setFont(generictext)
-            love.graphics.printf("-1 life", screenCenter.x, screenCenter.y + 50, screenCenter.x, "center", 0, 1, 1, 0, generictext:getHeight() / 1.7)
+            love.graphics.setFont(fonts.big)
+            love.graphics.printf("Miss!", screenCenter.x, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
+            love.graphics.setFont(fonts.generic)
+            love.graphics.printf("-1 life", screenCenter.x, screenCenter.y + 50, screenCenter.x, "center", 0, 1, 1, 0, fonts.generic:getHeight() / 1.7)
         end
 
         if warn_of_faster then
@@ -356,16 +360,16 @@ function rest:draw()
             love.graphics.draw(graphics.boss_sign, screenCenter.x, screenCenter.y-200, 0, 1, 1, graphics.boss_sign:getWidth() / 2, graphics.boss_sign:getHeight() / 2)
         end
     else
-        love.graphics.printf("Let's play!", 0, screenCenter.y, screenCenter.x * 2, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
+        love.graphics.printf("Let's play!", 0, screenCenter.y, screenCenter.x * 2, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
     end
 
     love.graphics.setColor(color.white)
-    love.graphics.setFont(generictext)
-    love.graphics.printf("(Games played: "..games_played..")", 0, screenCenter.y + 200, screenCenter.x * 2, "center", 0, 1, 1, 0, generictext:getHeight() / 1.7)
+    love.graphics.setFont(fonts.generic)
+    love.graphics.printf("(Games played: "..games_played..")", 0, screenCenter.y + 200, screenCenter.x * 2, "center", 0, 1, 1, 0, fonts.generic:getHeight() / 1.7)
 
-    love.graphics.setFont(bigtext)
+    love.graphics.setFont(fonts.big)
     love.graphics.setColor(color.white)
     love.graphics.draw(graphics.heart, screenCenter.x, screenCenter.y / 4, 0, graphics_scale.heart, graphics_scale.heart, graphics.heart:getWidth() / 2, graphics.heart:getHeight() / 2)
-    love.graphics.printf(math.max(rest.lives, 0), 0, screenCenter.y / 4, screenCenter.x * 2, "center", 0, 1, 1, 0, bigtext:getHeight() / 1.7)
+    love.graphics.printf(math.max(rest.lives, 0), 0, screenCenter.y / 4, screenCenter.x * 2, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
 end
 --------------------------------------------------------------------------------
