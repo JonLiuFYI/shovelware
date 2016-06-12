@@ -1,6 +1,8 @@
 local Gamestate = require "hump.gamestate"
 local tick = require "tick"
 
+Timer = require "hump.timer"
+
 -- Gamestates ------------------------------------------------------------------
 local menu = {}
 local splitScreen = {}
@@ -32,7 +34,7 @@ local playtime = -999       -- Wait this long before quitting splitscreen miniga
 
 -- game phase timing stuff
 local faster_interval = 3   -- play 5 games, then get faster
-local faster_inc = 0.05     -- add to timescale by this much every faster_interval
+local faster_inc = 0.1     -- add to timescale by this much every faster_interval
 local warn_of_faster = false   -- display a warning that the game is getting faster
 local boss_interval = 999    -- play 15 games, then play a boss. (don't get faster.)
 local warn_of_boss = false  -- display a waning that a boss is coming up
@@ -48,6 +50,7 @@ local graphics_scale = {}   -- scaling ratios for resolution independence
 -- fonts
 fonts = {}
 
+-- TODO: figure out how to timescale sounds provided by minigames
 function set_timescale(speed)
     tick.timescale = speed
     music.boss:setPitch(speed)
@@ -109,10 +112,24 @@ function love.load()
     }
     tick.framerate = 60
     set_timescale(timescale)
+    
+    -- TODO: organie tweening functions
+    pulse = function()
+        graphics_scale.heart = (love.graphics.getHeight() / 4) / graphics.heart:getHeight()
+        Timer.tween(time8beats/8, 
+            graphics_scale,
+            {heart = (love.graphics.getHeight() / 6) / graphics.heart:getHeight()},
+            "out-quad")
+    end
 
     Gamestate.registerEvents()
     Gamestate.push(menu)
 end
+
+function love.update(dt)
+    Timer.update(dt)
+end
+
 
 -- Menu gamestate --------------------------------------------------------------
 function menu:enter()
@@ -230,6 +247,8 @@ function rest:enter()
     set_timescale(timescale)    -- gotta reset properly
     
     games_played = 0
+    
+    pulse()
 
     resttime = time8beats
 
@@ -249,6 +268,16 @@ function rest:resume()
     -- play the right music based on how the team played. Then start the countdown to next game.
     if rest.lastWin.pl and rest.lastWin.pr then
         music.win:play()
+        -- TODO: do something more elegant than this
+        Timer.script(function(wait)
+            pulse()
+            wait(time4beats/4)
+            pulse()
+            wait(time4beats/4)
+            pulse()
+            wait(time4beats/4)
+            pulse()
+        end)
     else
         if rest.lives <= 0 then
             set_timescale(1)
