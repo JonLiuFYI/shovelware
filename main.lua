@@ -18,7 +18,9 @@ local bindings = {}
 local color = {
     playerblue = {51, 181, 229},
     playerred = {230, 56, 56},
-    white = {255, 255, 255}
+    white = {255, 255, 255},
+    black = {0, 0, 0},
+    slate = {57, 69, 74},
 }
 
 -- music timing stuff
@@ -253,11 +255,26 @@ function splitScreen:draw()
     
     old_beats_left = beats_left
     beats_left = math.max(math.floor(playtime/time8beats*8), 0)
-    if beats_left <= 3 then
-        love.graphics.printf(math.max(beats_left, 0), 0, screenCenter.y * 2 / 4 * 3, screenCenter.x * 2, "center")
-        if beats_left < old_beats_left then
-            music.tick:play()
+    if beats_left <= 8 then
+        -- wtf??? screenCenter.y * 2 / 4 * 3
+        love.graphics.setColor(color.black)
+        love.graphics.circle("fill", screenCenter.x, screenCenter.y * 2 / 4 * 3, 64)
+        
+        if beats_left <= 3 then
+            if beats_left < old_beats_left then
+                music.tick:play()
+                tweens.pulse(2.5)
+            end
+            love.graphics.setColor(color.white)
+        else
+            love.graphics.setColor(color.slate)
         end
+        
+        love.graphics.printf(math.max(beats_left, 0),
+            screenCenter.x, screenCenter.y * 2 / 4 * 3 + 5, screenCenter.x * 2,
+            "center", 0,
+            tweens_scale.pulse, tweens_scale.pulse,
+            screenCenter.x, fonts.big:getHeight() / 1.7)
     end
 end
 --------------------------------------------------------------------------------
