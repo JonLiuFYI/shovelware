@@ -33,7 +33,7 @@ local nexttime = -999       -- Wait this long before starting next.
 local playtime = -999       -- Wait this long before quitting splitscreen minigames.
 
 -- game phase timing stuff
-local faster_interval = 3   -- play this many games, then get faster
+local faster_interval = 2   -- play this many games, then get faster
 local faster_inc = 0.1     -- add to timescale by this much every faster_interval
 local warn_of_faster = false   -- display a warning that the game is getting faster
 local boss_interval = 999    -- play 15 games, then play a boss. (don't get faster.)
@@ -103,9 +103,10 @@ anim = {
             tweens.popin()
             wait(time8beats*7/8)
             tweens.backslide()
-            wait(time4beats/4)
-            warn_of_boss = false
-            warn_of_faster = false
+            --wait(time4beats/4)
+            -- are these next two lines causing issues with timescaling? (issue #22)
+            --warn_of_boss = false
+            --warn_of_faster = false
         end)
     end,
 }
@@ -381,6 +382,10 @@ function rest:update(dt)
             set_timescale(timescale)
         end
         
+        -- warn flags
+        warn_of_boss = false
+        warn_of_faster = false
+        
         nexttime = time4beats
         warntime = -999
     end
@@ -446,7 +451,7 @@ function rest:draw()
 
     love.graphics.setColor(color.white)
     love.graphics.setFont(fonts.generic)
-    love.graphics.printf("(Games played: "..games_played..")", 0, screenCenter.y + 200, screenCenter.x * 2, "center", 0, 1, 1, 0, fonts.generic:getHeight() / 1.7)
+    love.graphics.printf("Games played: "..games_played.."\nTimescale: "..timescale, 0, screenCenter.y + 200, screenCenter.x * 2, "center", 0, 1, 1, 0, fonts.generic:getHeight() / 1.7)
 
     love.graphics.setFont(fonts.big)
     love.graphics.setColor(color.white)
