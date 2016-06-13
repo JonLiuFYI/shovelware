@@ -33,7 +33,7 @@ local nexttime = -999       -- Wait this long before starting next.
 local playtime = -999       -- Wait this long before quitting splitscreen minigames.
 
 -- game phase timing stuff
-local faster_interval = 3   -- play 5 games, then get faster
+local faster_interval = 3   -- play this many games, then get faster
 local faster_inc = 0.1     -- add to timescale by this much every faster_interval
 local warn_of_faster = false   -- display a warning that the game is getting faster
 local boss_interval = 999    -- play 15 games, then play a boss. (don't get faster.)
@@ -53,7 +53,9 @@ fonts = {}
 -- tweening stuff
 -- TODO: still need to figure out how to organize tweens
 tweens_scale = {
-    pulse = 1
+    pulse = 1,
+    popin = 1,
+    backslide = 0,
 }
 
 tweens = {
@@ -63,9 +65,21 @@ tweens = {
             tweens_scale,
             {pulse = 1},
             "out-quad")
-    end
-    --popin = function()
-        
+    end,
+    popin = function()
+        tweens_scale.popin = 0
+        Timer.tween(time4beats/2,
+            tweens_scale,
+            {popin = 1},
+            "in-bounce")
+    end,
+    backslide = function()
+        tweens_scale.backslide = 0
+        Timer.tween(time4beats/4,
+            tweens_scale,
+            {backslide = 1},
+            "in-back")
+    end,
 }
 anim = {
     lives_pulse = function()
@@ -75,7 +89,25 @@ anim = {
                 wait(time4beats/4)
             end
         end)
-    end
+    end,
+    letsplay_popin = function()
+        tweens_scale.popin = 0
+        Timer.script(function(wait)
+            wait(3.5*time4beats/4)
+            tweens.popin()
+        end)
+    end,
+    show_sign = function()
+        tweens_scale.backslide = 0
+        Timer.script(function(wait)
+            tweens.popin()
+            wait(time8beats*7/8)
+            tweens.backslide()
+            wait(time4beats/4)
+            warn_of_boss = false
+            warn_of_faster = false
+        end)
+    end,
 }
 
 -- TODO: figure out how to timescale sounds provided by minigames
@@ -266,6 +298,8 @@ function rest:enter()
     set_timescale(timescale)    -- gotta reset properly
     
     games_played = 0
+    
+    anim.letsplay_popin()
 
     resttime = time8beats
 
@@ -315,12 +349,14 @@ function rest:update(dt)
         elseif games_played % boss_interval == 0 and games_played ~= 0 then
             warn_of_boss = true
             music.boss:play()
+            anim.show_sign()
             warntime = time8beats
 
         -- speed up: insert speed warning before nexttime
         elseif games_played % faster_interval == 0 and games_played ~= 0 then
             warn_of_faster = true
             music.faster:play()
+            anim.show_sign()
             warntime = time8beats
 
         -- nothing special. just move to next minigame.
@@ -345,8 +381,6 @@ function rest:update(dt)
             set_timescale(timescale)
         end
         
-        warn_of_boss = false
-        warn_of_faster = false
         nexttime = time4beats
         warntime = -999
     end
@@ -391,13 +425,23 @@ function rest:draw()
 
         if warn_of_faster then
             love.graphics.setColor(color.white)
-            love.graphics.draw(graphics.faster_sign, screenCenter.x, screenCenter.y-200, 0, 1, 1, graphics.faster_sign:getWidth() / 2, graphics.faster_sign:getHeight() / 2)
+            love.graphics.draw(graphics.faster_sign,
+                screenCenter.x + 2*screenCenter.x*tweens_scale.backslide, screenCenter.y/2, 0,
+                graphics_scale.faster_sign*tweens_scale.popin, graphics_scale.faster_sign*tweens_scale.popin,
+                graphics.faster_sign:getWidth() / 2, graphics.faster_sign:getHeight() / 2)
         elseif warn_of_boss then
             love.graphics.setColor(color.white)
-            love.graphics.draw(graphics.boss_sign, screenCenter.x, screenCenter.y-200, 0, 1, 1, graphics.boss_sign:getWidth() / 2, graphics.boss_sign:getHeight() / 2)
+            love.graphics.draw(graphics.boss_sign,
+                screenCenter.x, screenCenter.y/2, 0,
+                graphics_scale.faster_sign*tweens_scale.popin, graphics_scale.faster_sign*tweens_scale.popin,
+                graphics.boss_sign:getWidth() / 2, graphics.boss_sign:getHeight() / 2)
         end
     else
-        love.graphics.printf("Let's play!", 0, screenCenter.y/2, screenCenter.x * 2, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
+        love.graphics.printf("Let's play!",
+            screenCenter.x, screenCenter.y/2,
+            screenCenter.x * 2, "center", 0,
+            1*tweens_scale.popin, 1*tweens_scale.popin,
+            screenCenter.x, fonts.big:getHeight() / 1.7)
     end
 
     love.graphics.setColor(color.white)
