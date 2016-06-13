@@ -82,23 +82,24 @@ function love.load()
     games = love.filesystem.getDirectoryItems("games")
     bosses = love.filesystem.getDirectoryItems("bosses")
     music = {
-        begin = love.audio.newSource("assets/sw_begin.wav"),
-        boss = love.audio.newSource("assets/sw_boss.wav"),
-        faster = love.audio.newSource("assets/sw_faster.wav"),
-        gameover = love.audio.newSource("assets/sw_gameover.wav"),
-        intro = love.audio.newSource("assets/sw_intro.wav"),
-        lose = love.audio.newSource("assets/sw_lose.wav"),
-        nextgame = love.audio.newSource("assets/sw_next.wav"),
-        tick = love.audio.newSource("assets/tick.wav"),
-        win = love.audio.newSource("assets/sw_win.wav")
+        begin = love.audio.newSource("assets/audio_rest/sw_begin.wav"),
+        boss = love.audio.newSource("assets/audio_rest/sw_boss.wav"),
+        faster = love.audio.newSource("assets/audio_rest/sw_faster.wav"),
+        gameover = love.audio.newSource("assets/audio_rest/sw_gameover.wav"),
+        intro = love.audio.newSource("assets/audio_rest/sw_intro.wav"),
+        lose = love.audio.newSource("assets/audio_rest/sw_lose.wav"),
+        nextgame = love.audio.newSource("assets/audio_rest/sw_next.wav"),
+        tick = love.audio.newSource("assets/audio_rest/tick.wav"),
+        win = love.audio.newSource("assets/audio_rest/sw_win.wav")
     }
+    -- TODO: load these by scanning the directory, not by individually loading
     minigame_bgm = {
-        love.audio.newSource("assets/sw_a_brief_romance.wav"),
-        love.audio.newSource("assets/sw_a_misstep.wav"),
-        love.audio.newSource("assets/sw_a_offbeat.wav"),
-        love.audio.newSource("assets/sw_a_sadaghdar.wav"),
-        love.audio.newSource("assets/sw_b_diurnal_crush.wav"),
-        love.audio.newSource("assets/sw_b_nocturnal_strike.wav")
+        love.audio.newSource("assets/audio_splitscreen/sw_a_brief_romance.wav"),
+        love.audio.newSource("assets/audio_splitscreen/sw_a_misstep.wav"),
+        love.audio.newSource("assets/audio_splitscreen/sw_a_offbeat.wav"),
+        love.audio.newSource("assets/audio_splitscreen/sw_a_sadaghdar.wav"),
+        love.audio.newSource("assets/audio_splitscreen/sw_b_diurnal_crush.wav"),
+        love.audio.newSource("assets/audio_splitscreen/sw_b_nocturnal_strike.wav")
     }
     graphics = {
         faster_sign = love.graphics.newImage("assets/faster.png"),
