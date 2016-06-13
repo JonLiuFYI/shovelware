@@ -103,10 +103,6 @@ anim = {
             tweens.popin()
             wait(time8beats*7/8)
             tweens.backslide()
-            --wait(time4beats/4)
-            -- are these next two lines causing issues with timescaling? (issue #22)
-            --warn_of_boss = false
-            --warn_of_faster = false
         end)
     end,
 }
