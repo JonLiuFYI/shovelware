@@ -50,6 +50,9 @@ local graphics_scale = {}   -- scaling ratios for resolution independence
 -- fonts
 fonts = {}
 
+-- TODO: still need to figure out how to organize tweens
+numpulse_scale = {1}
+
 -- TODO: figure out how to timescale sounds provided by minigames
 function set_timescale(speed)
     tick.timescale = speed
@@ -101,26 +104,33 @@ function love.load()
         faster_sign = love.graphics.newImage("assets/faster.png"),
         boss_sign = love.graphics.newImage("assets/boss.png"),
         heart = love.graphics.newImage("assets/heart.png"),
-        logo = love.graphics.newImage("assets/logo.png")
+        logo = love.graphics.newImage("assets/new_logo.png")
     }
     -- TODO: unite graphics_scale and graphics because it makes no sense for these two to be separate.
     graphics_scale = {
         faster_sign = (love.graphics.getHeight() / 3) / graphics.faster_sign:getHeight(),
         boss_sign = (love.graphics.getHeight() / 3) / graphics.boss_sign:getHeight(),
         heart = (love.graphics.getHeight() / 6) / graphics.heart:getHeight(),
-        logo = (love.graphics.getHeight() / 4) / graphics.logo:getHeight()
+        logo = (love.graphics.getHeight() / 2) / graphics.logo:getHeight()
     }
     tick.framerate = 60
     set_timescale(timescale)
     
-    -- TODO: organie tweening functions
+    -- TODO: organize tweening functions
     pulse = function()
         graphics_scale.heart = (love.graphics.getHeight() / 4) / graphics.heart:getHeight()
-        Timer.tween(time8beats/8, 
+        Timer.tween(time4beats/4, 
             graphics_scale,
             {heart = (love.graphics.getHeight() / 6) / graphics.heart:getHeight()},
             "out-quad")
     end
+    numpulse = function(scale)
+        numpulse_scale = {1.5}
+        Timer.tween(time4beats/4,
+            numpulse_scale,
+            {1},
+            "out-quad")
+        end
 
     Gamestate.registerEvents()
     Gamestate.push(menu)
@@ -140,7 +150,6 @@ function menu:draw()
     love.graphics.draw(graphics.logo, screenCenter.x, screenCenter.y / 1.5, 0, graphics_scale.logo, graphics_scale.logo, graphics.logo:getWidth() / 2, graphics.logo:getHeight() / 2)
     
     love.graphics.setFont(fonts.generic)
-    love.graphics.printf("First presented at\nWaterloo Summer Game Jam 2016", 0, screenCenter.y * 1, screenCenter.x * 2, "center", 0, 1, 1, 0, fonts.generic:getHeight() / 1.7)
     love.graphics.printf("press ENTER", 0, screenCenter.y * 1.5, screenCenter.x * 2, "center", 0, 1, 1, 0, fonts.generic:getHeight() / 1.7)
     love.graphics.setColor(color.playerblue)
     love.graphics.print("By Jon Liu and Andre Ostrovsky\ngithub.com/PocketEngi/shovelware", 50, 50)
@@ -271,12 +280,16 @@ function rest:resume()
         -- TODO: do something more elegant than this
         Timer.script(function(wait)
             pulse()
+            numpulse()
             wait(time4beats/4)
             pulse()
+            numpulse()
             wait(time4beats/4)
             pulse()
+            numpulse()
             wait(time4beats/4)
             pulse()
+            numpulse()
         end)
     else
         if rest.lives <= 0 then
@@ -389,7 +402,7 @@ function rest:draw()
             love.graphics.draw(graphics.boss_sign, screenCenter.x, screenCenter.y-200, 0, 1, 1, graphics.boss_sign:getWidth() / 2, graphics.boss_sign:getHeight() / 2)
         end
     else
-        love.graphics.printf("Let's play!", 0, screenCenter.y, screenCenter.x * 2, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
+        love.graphics.printf("Let's play!", 0, screenCenter.y/2, screenCenter.x * 2, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
     end
 
     love.graphics.setColor(color.white)
@@ -398,7 +411,11 @@ function rest:draw()
 
     love.graphics.setFont(fonts.big)
     love.graphics.setColor(color.white)
-    love.graphics.draw(graphics.heart, screenCenter.x, screenCenter.y / 4, 0, graphics_scale.heart, graphics_scale.heart, graphics.heart:getWidth() / 2, graphics.heart:getHeight() / 2)
-    love.graphics.printf(math.max(rest.lives, 0), 0, screenCenter.y / 4, screenCenter.x * 2, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
+    love.graphics.draw(graphics.heart, screenCenter.x, screenCenter.y, 0, graphics_scale.heart, graphics_scale.heart, graphics.heart:getWidth() / 2, graphics.heart:getHeight() / 2)
+    love.graphics.printf(math.max(rest.lives, 0),
+        screenCenter.x, screenCenter.y,
+        screenCenter.x * 2, "center", 0,
+        1*numpulse_scale[1], 1*numpulse_scale[1],
+        screenCenter.x, fonts.big:getHeight() / 1.7 * numpulse_scale[1])
 end
 --------------------------------------------------------------------------------
