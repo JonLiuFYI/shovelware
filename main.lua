@@ -17,7 +17,7 @@ local bindings = {}
 
 local color = {
     playerblue = {51, 181, 229},
-    playerred = {217, 69, 69},
+    playerred = {230, 56, 56},
     white = {255, 255, 255}
 }
 
