@@ -50,8 +50,33 @@ local graphics_scale = {}   -- scaling ratios for resolution independence
 -- fonts
 fonts = {}
 
+-- tweening stuff
 -- TODO: still need to figure out how to organize tweens
-numpulse_scale = {1}
+tweens_scale = {
+    pulse = 1
+}
+
+tweens = {
+    pulse = function(scale)
+        tweens_scale.pulse = scale
+        Timer.tween(time4beats/4,
+            tweens_scale,
+            {pulse = 1},
+            "out-quad")
+    end
+    --popin = function()
+        
+}
+anim = {
+    lives_pulse = function()
+        Timer.script(function(wait)
+            for i=1,4 do
+                tweens.pulse(1.5)
+                wait(time4beats/4)
+            end
+        end)
+    end
+}
 
 -- TODO: figure out how to timescale sounds provided by minigames
 function set_timescale(speed)
@@ -116,22 +141,6 @@ function love.load()
     }
     tick.framerate = 60
     set_timescale(timescale)
-    
-    -- TODO: organize tweening functions
-    pulse = function()
-        graphics_scale.heart = (love.graphics.getHeight() / 4) / graphics.heart:getHeight()
-        Timer.tween(time4beats/4, 
-            graphics_scale,
-            {heart = (love.graphics.getHeight() / 6) / graphics.heart:getHeight()},
-            "out-quad")
-    end
-    numpulse = function(scale)
-        numpulse_scale = {1.5}
-        Timer.tween(time4beats/4,
-            numpulse_scale,
-            {1},
-            "out-quad")
-        end
 
     Gamestate.registerEvents()
     Gamestate.push(menu)
@@ -257,8 +266,6 @@ function rest:enter()
     set_timescale(timescale)    -- gotta reset properly
     
     games_played = 0
-    
-    pulse()
 
     resttime = time8beats
 
@@ -278,20 +285,7 @@ function rest:resume()
     -- play the right music based on how the team played. Then start the countdown to next game.
     if rest.lastWin.pl and rest.lastWin.pr then
         music.win:play()
-        -- TODO: do something more elegant than this
-        Timer.script(function(wait)
-            pulse()
-            numpulse()
-            wait(time4beats/4)
-            pulse()
-            numpulse()
-            wait(time4beats/4)
-            pulse()
-            numpulse()
-            wait(time4beats/4)
-            pulse()
-            numpulse()
-        end)
+        anim.lives_pulse()
     else
         if rest.lives <= 0 then
             set_timescale(1)
@@ -412,11 +406,14 @@ function rest:draw()
 
     love.graphics.setFont(fonts.big)
     love.graphics.setColor(color.white)
-    love.graphics.draw(graphics.heart, screenCenter.x, screenCenter.y, 0, graphics_scale.heart, graphics_scale.heart, graphics.heart:getWidth() / 2, graphics.heart:getHeight() / 2)
+    love.graphics.draw(graphics.heart,
+        screenCenter.x, screenCenter.y, 0,
+        graphics_scale.heart*tweens_scale.pulse, graphics_scale.heart*tweens_scale.pulse,
+        graphics.heart:getWidth() / 2, graphics.heart:getHeight() / 2)
     love.graphics.printf(math.max(rest.lives, 0),
         screenCenter.x, screenCenter.y,
         screenCenter.x * 2, "center", 0,
-        1*numpulse_scale[1], 1*numpulse_scale[1],
-        screenCenter.x, fonts.big:getHeight() / 1.7 * numpulse_scale[1])
+        1*tweens_scale.pulse, 1*tweens_scale.pulse,
+        screenCenter.x, fonts.big:getHeight() / 1.7 * tweens_scale.pulse)
 end
 --------------------------------------------------------------------------------
