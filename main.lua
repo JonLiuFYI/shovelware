@@ -1,7 +1,7 @@
 local Gamestate = require "hump.gamestate"
-local tick = require "tick"
-
 Timer = require "hump.timer"
+local tick = require "tick"
+local Wave = require "wave"
 
 -- Gamestates ------------------------------------------------------------------
 local menu = {}
@@ -26,6 +26,7 @@ local color = {
 -- music timing stuff
 local music = {}
 local minigame_bgm = {}
+-- TODO: local menubgm
 local timescale = 1               -- represents the speed of the game. timescale = 1.5 means 1.5 times the speed.
 local time4beats = 2.122    -- time in seconds, scaled by timescale
 local time8beats = 4.256
@@ -146,17 +147,18 @@ function love.load()
         lose = love.audio.newSource("assets/audio_rest/sw_lose.wav"),
         nextgame = love.audio.newSource("assets/audio_rest/sw_next.wav"),
         tick = love.audio.newSource("assets/audio_rest/tick.wav"),
-        win = love.audio.newSource("assets/audio_rest/sw_win.wav")
+        win = love.audio.newSource("assets/audio_rest/sw_win.wav"),
+        menu = love.audio.newSource("assets/audio_outofgame/fchp.it")
     }
-    -- TODO: load these by scanning the directory, not by individually loading
-    minigame_bgm = {
-        love.audio.newSource("assets/audio_splitscreen/sw_a_brief_romance.wav"),
-        love.audio.newSource("assets/audio_splitscreen/sw_a_misstep.wav"),
-        love.audio.newSource("assets/audio_splitscreen/sw_a_offbeat.wav"),
-        love.audio.newSource("assets/audio_splitscreen/sw_a_sadaghdar.wav"),
-        love.audio.newSource("assets/audio_splitscreen/sw_b_diurnal_crush.wav"),
-        love.audio.newSource("assets/audio_splitscreen/sw_b_nocturnal_strike.wav")
-    }
+    local minigame_bgm_filelist = love.filesystem.getDirectoryItems("assets/audio_splitscreen")
+    for i,f in ipairs(minigame_bgm_filelist) do
+        table.insert(minigame_bgm, love.audio.newSource("assets/audio_splitscreen/"..f))
+    end
+    -- TODO: use wave for fancy music-based pulsing on menu. fchp.it needs to be rendered to wav first.
+    --[[menubgm = Wave:newSource("assets/audio_outofgame/fchp.it", "static")
+        :parse()
+        :setIntensity(10)--]]
+        
     graphics = {
         faster_sign = love.graphics.newImage("assets/faster.png"),
         boss_sign = love.graphics.newImage("assets/boss.png"),
@@ -184,11 +186,20 @@ end
 
 -- Menu gamestate --------------------------------------------------------------
 function menu:enter()
+    menu:resume()
+end
+
+function menu:resume()
+    -- TODO: use this once wave and fchp.it are ready
+    --menubgm:play()
+    music.menu:play()
 end
 
 function menu:draw()
     love.graphics.setColor(color.white)
-    love.graphics.draw(graphics.logo, screenCenter.x, screenCenter.y / 1.5, 0, graphics_scale.logo, graphics_scale.logo, graphics.logo:getWidth() / 2, graphics.logo:getHeight() / 2)
+    love.graphics.draw(graphics.logo, screenCenter.x, screenCenter.y / 1.5, 0,
+        graphics_scale.logo, graphics_scale.logo,
+        graphics.logo:getWidth() / 2, graphics.logo:getHeight() / 2)
     
     love.graphics.setFont(fonts.generic)
     love.graphics.printf("press ENTER", 0, screenCenter.y * 1.5, screenCenter.x * 2, "center", 0, 1, 1, 0, fonts.generic:getHeight() / 1.7)
@@ -310,8 +321,9 @@ end
 function rest:enter()
     timescale = 1
     set_timescale(timescale)    -- gotta reset properly
-    
     games_played = 0
+    
+    love.audio.stop()
     
     anim.letsplay_popin()
 
@@ -444,8 +456,8 @@ function rest:draw()
         if warn_of_faster then
             love.graphics.setColor(color.white)
             love.graphics.draw(graphics.faster_sign,
-                screenCenter.x + 2*screenCenter.x*tweens_scale.backslide, screenCenter.y/2, 0,
-                graphics_scale.faster_sign*tweens_scale.popin, graphics_scale.faster_sign*tweens_scale.popin,
+                screenCenter.x*(1 + 2.5*tweens_scale.backslide), screenCenter.y/2, 0,
+                graphics_scale.faster_sign*(tweens_scale.popin + 4*tweens_scale.backslide), graphics_scale.faster_sign*(tweens_scale.popin - tweens_scale.backslide),
                 graphics.faster_sign:getWidth() / 2, graphics.faster_sign:getHeight() / 2)
         elseif warn_of_boss then
             love.graphics.setColor(color.white)
