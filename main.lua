@@ -155,8 +155,10 @@ function love.load()
     menubgm = Wave:newSource("assets/audio_outofgame/fchp_kt.wav", "static")
         :parse()
         :setIntensity(10)
-        :setBPM(128)
+        :setBPM(128):onBeat(function() tweens.pulse(0) end)
         :setLooping(true)
+        :setTargetPitch(1)
+        :setTargetVolume(1)
         
     graphics = {
         faster_sign = love.graphics.newImage("assets/faster.png"),
@@ -180,6 +182,7 @@ end
 
 function love.update(dt)
     Timer.update(dt)
+    menubgm:update(dt)
 end
 
 
@@ -193,9 +196,10 @@ function menu:resume()
 end
 
 function menu:draw()
+    local logo_scalefactor = 1 + 1/20*menubgm:getEnergy() * (1 - tweens_scale.pulse)
     love.graphics.setColor(color.white)
     love.graphics.draw(graphics.logo, screenCenter.x, screenCenter.y / 1.5, 0,
-        graphics_scale.logo, graphics_scale.logo,
+        graphics_scale.logo * (1 + 1/8*menubgm:getEnergy() * (1 - tweens_scale.pulse)), graphics_scale.logo * logo_scalefactor,
         graphics.logo:getWidth() / 2, graphics.logo:getHeight() / 2)
     
     love.graphics.setFont(fonts.generic)
