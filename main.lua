@@ -222,8 +222,21 @@ end
 --------------------------------------------------------------------------------
 
 -- SplitScreen gamestate -------------------------------------------------------
+local beats_left = 7
 function splitScreen:enter()
-    playtime = time8beats
+    start_ticking = true
+    beats_left = 7
+    Timer.after(time8beats, function()
+        Gamestate.pop()
+    end)
+
+    Timer.every(time8beats/8, function()
+        beats_left = beats_left - 1
+        if beats_left <= 3 then
+            music.tick:play()
+            tweens.pulse(2.5)
+        end
+    end, 7)
     
     minigame_bgm[love.math.random(#minigame_bgm)]:play()
 
@@ -251,47 +264,29 @@ function splitScreen:keypressed(key)
 end
 
 function splitScreen:update(dt)
-    if playtime > 0 then
-        playtime = playtime - dt
-    elseif -999 < playtime and playtime <= 0 then
-        playtime = -999
-        Gamestate.pop()
-    end
-
     next_game.l.update(dt, bindings.pl)
     next_game.r.update(dt, bindings.pr)
 end
 
 -- these two variables track when a beat has passed. Used in splitScreen:draw().
-local old_beats_left = 4
-local beats_left = 3
 function splitScreen:draw()
     next_game.l.draw()
     next_game.r.draw()
     
-    old_beats_left = beats_left
-    beats_left = math.max(math.floor(playtime/time8beats*8), 0)
-    if beats_left <= 8 then
-        -- wtf??? screenCenter.y * 2 / 4 * 3
-        love.graphics.setColor(color.black)
-        love.graphics.circle("fill", screenCenter.x, screenCenter.y * 2 / 4 * 3, 64)
-        
-        if beats_left <= 3 then
-            if beats_left < old_beats_left then
-                music.tick:play()
-                tweens.pulse(2.5)
-            end
-            love.graphics.setColor(color.white)
-        else
-            love.graphics.setColor(color.slate)
-        end
-        
-        love.graphics.printf(math.max(beats_left, 0),
-            screenCenter.x, screenCenter.y * 2 / 4 * 3 + 5, screenCenter.x * 2,
-            "center", 0,
-            tweens_scale.pulse, tweens_scale.pulse,
-            screenCenter.x, fonts.big:getHeight() / 1.7)
+    love.graphics.setColor(color.black)
+    love.graphics.circle("fill", screenCenter.x, screenCenter.y * 2 / 4 * 3, 64)
+    
+    if beats_left <= 3 then
+        love.graphics.setColor(color.white)
+    else
+        love.graphics.setColor(color.slate)
     end
+    
+    love.graphics.printf(math.max(beats_left, 0),
+        screenCenter.x, screenCenter.y * 2 / 4 * 3 + 5, screenCenter.x * 2,
+        "center", 0,
+        tweens_scale.pulse, tweens_scale.pulse,
+        screenCenter.x, fonts.big:getHeight() / 1.7)
 end
 --------------------------------------------------------------------------------
 
@@ -500,14 +495,14 @@ end
 --------------------------------------------------------------------------------
 
 -- Postgame state --------------------------------------------------------------
-function postgame:enter()
+function postgame:enter(score)
     
 end
 
 function postgame:draw()
     love.graphics.setColor(color.white)
     love.graphics.setFont(fonts.big)
-    love.graphics.printf("Game over!",
+    love.graphics.printf("Game over! Games played: "..games_played,
         screenCenter.x, screenCenter.y/2,
         screenCenter.x * 2, "center", 0,
         1, 1,
