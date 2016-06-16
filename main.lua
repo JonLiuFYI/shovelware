@@ -31,7 +31,6 @@ local menubgm
 local timescale = 1               -- represents the speed of the game. timescale = 1.5 means 1.5 times the speed.
 local time4beats = 2.122    -- time in seconds, scaled by timescale
 local time8beats = 4.256
-local warntime = -999       -- Wait this long while a warning is playing.
 local nexttime = -999       -- Wait this long before starting next.
 
 -- game phase timing stuff
@@ -315,6 +314,7 @@ end
 --------------------------------------------------------------------------------
 
 -- Rest gamestate -------------------------------------------------------
+-- Wat do after playing the win/lose jingle?
 function watdo()
     -- no more lives. game over. Leave this state.
     if rest.lives <= 0 then
@@ -326,14 +326,14 @@ function watdo()
         warn_of_boss = true
         music.boss:play()
         anim.show_sign()
-        warntime = time8beats
+        Timer.after(time8beats, function() show_warning() end)
 
     -- speed up: insert speed warning before nexttime
     elseif games_played % faster_interval == 0 and games_played ~= 0 then
         warn_of_faster = true
         music.faster:play()
         anim.show_sign()
-        warntime = time8beats
+        Timer.after(time8beats, function() show_warning() end)
 
     -- nothing special. just move to next minigame.
     else
@@ -345,6 +345,20 @@ function watdo()
         until next_game.r ~= next_game.l
         show_next_instruction = true
     end
+end
+
+-- show warning for speed up or boss
+function show_warning()
+    if warn_of_faster then
+        timescale = timescale + faster_inc
+        set_timescale(timescale)
+    end
+    
+    -- warn flags
+    warn_of_boss = false
+    warn_of_faster = false
+    
+    nexttime = time4beats
 end
 
 -- playnext controls if the "next game" tune plays
@@ -390,24 +404,6 @@ function rest:resume()
 end
 
 function rest:update(dt)
-    -- wait while warning plays, then proceed to nexttime
-    if warntime > 0 then
-        warntime = warntime - dt
-    elseif -999 < warntime and warntime <= 0 then
-        -- play speed warning before speed up occurs
-        if warn_of_faster then
-            timescale = timescale + faster_inc
-            set_timescale(timescale)
-        end
-        
-        -- warn flags
-        warn_of_boss = false
-        warn_of_faster = false
-        
-        nexttime = time4beats
-        warntime = -999
-    end
-
     -- wait while next tune plays, then move to minigames
     if nexttime > 0 then
         if playnext then music.nextgame:play() end
@@ -416,6 +412,7 @@ function rest:update(dt)
         nexttime = nexttime - dt
     elseif -999 < nexttime and nexttime <= 0 then
         love.audio.stop()
+        -- TODO: conditionally switch to boss
         Gamestate.push(splitScreen)
         nexttime = -999
     end
