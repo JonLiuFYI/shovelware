@@ -139,24 +139,24 @@ function love.load()
     games = love.filesystem.getDirectoryItems("games")
     bosses = love.filesystem.getDirectoryItems("bosses")
     music = {
-        begin = love.audio.newSource("assets/audio_rest/sw_begin.wav"),
-        boss = love.audio.newSource("assets/audio_rest/sw_boss.wav"),
-        faster = love.audio.newSource("assets/audio_rest/sw_faster.wav"),
-        gameover = love.audio.newSource("assets/audio_rest/sw_gameover.wav"),
-        intro = love.audio.newSource("assets/audio_rest/sw_intro.wav"),
-        lose = love.audio.newSource("assets/audio_rest/sw_lose.wav"),
-        nextgame = love.audio.newSource("assets/audio_rest/sw_next.wav"),
-        tick = love.audio.newSource("assets/audio_rest/tick.wav"),
-        win = love.audio.newSource("assets/audio_rest/sw_win.wav"),
+        begin = Wave:newSource("assets/audio_rest/sw_begin.wav"),
+        boss = Wave:newSource("assets/audio_rest/sw_boss.wav"),
+        faster = Wave:newSource("assets/audio_rest/sw_faster.wav"),
+        gameover = Wave:newSource("assets/audio_rest/sw_gameover.wav"),
+        intro = Wave:newSource("assets/audio_rest/sw_intro.wav"),
+        lose = Wave:newSource("assets/audio_rest/sw_lose.wav"),
+        nextgame = Wave:newSource("assets/audio_rest/sw_next.wav"),
+        tick = Wave:newSource("assets/audio_rest/tick.wav"),
+        win = Wave:newSource("assets/audio_rest/sw_win.wav"),
     }
     for i,f in ipairs(love.filesystem.getDirectoryItems("assets/audio_splitscreen")) do
-        table.insert(minigame_bgm, love.audio.newSource("assets/audio_splitscreen/"..f))
+        table.insert(minigame_bgm, Wave:newSource("assets/audio_splitscreen/"..f))
     end
-    --[[menubgm = Wave:newSource("assets/audio_outofgame/fchp_kt.wav", "static")
+    menubgm = Wave:newSource("assets/audio_outofgame/fchp_kt.wav", "static")
         :parse()
         :setIntensity(10)
         :setBPM(128)
-        :setLooping(true)--]]
+        :setLooping(true)
         
     graphics = {
         faster_sign = love.graphics.newImage("assets/faster.png"),
@@ -189,7 +189,7 @@ function menu:enter()
 end
 
 function menu:resume()
-    --menubgm:play()
+    menubgm:play()
 end
 
 function menu:draw()
@@ -206,7 +206,7 @@ end
 
 function menu:keyreleased(key)
     if key == 'return' then
-        --menubgm:stop()
+        menubgm:stop()
         Gamestate.push(rest)
     elseif key == 'escape' then
         love.event.quit()
@@ -218,7 +218,7 @@ end
 function splitScreen:enter()
     playtime = time8beats
     
-    love.audio.play(minigame_bgm[love.math.random(#minigame_bgm)])
+    minigame_bgm[love.math.random(#minigame_bgm)]:play()
 
     next_game.l.load(0, screenCenter.x, screenCenter.y * 2)
     next_game.r.load(screenCenter.x, screenCenter.x, screenCenter.y * 2)
@@ -316,6 +316,8 @@ end
 --------------------------------------------------------------------------------
 
 -- Rest gamestate -------------------------------------------------------
+-- playnext controls if the "next game" tune plays
+local playnext
 function rest:enter()
     timescale = 1
     set_timescale(timescale)    -- gotta reset properly
@@ -324,6 +326,7 @@ function rest:enter()
     anim.letsplay_popin()
 
     resttime = time8beats
+    playnext = true
 
     rest.lives = 2
     rest.lastWin = {}
@@ -352,10 +355,10 @@ function rest:resume()
     games_played = games_played + 1
 
     resttime = time4beats
+    playnext = true
 end
 
 function rest:update(dt)
-    local playnext = true
 
     -- wait while win/lose tune plays, then play the next appropriate thing
     if resttime > 0 then
@@ -414,6 +417,7 @@ function rest:update(dt)
     -- wait while next tune plays, then move to minigames
     if nexttime > 0 then
         if playnext then music.nextgame:play() end
+        
         playnext = false
         nexttime = nexttime - dt
     elseif -999 < nexttime and nexttime <= 0 then

@@ -3,7 +3,7 @@ function love.conf(t)
 	t.version = "0.10.0"
 	t.window.fullscreen = true
     t.window.fullscreentype = "desktop"
-	t.window.fsaa = 4
+	-- is msaa really needed?
 	t.window.msaa = 4
 	t.window.vsync = true
 
