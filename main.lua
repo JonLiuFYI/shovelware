@@ -26,7 +26,7 @@ local color = {
 -- music timing stuff
 local music = {}
 local minigame_bgm = {}
--- TODO: local menubgm
+local menubgm
 local timescale = 1               -- represents the speed of the game. timescale = 1.5 means 1.5 times the speed.
 local time4beats = 2.122    -- time in seconds, scaled by timescale
 local time8beats = 4.256
@@ -148,16 +148,15 @@ function love.load()
         nextgame = love.audio.newSource("assets/audio_rest/sw_next.wav"),
         tick = love.audio.newSource("assets/audio_rest/tick.wav"),
         win = love.audio.newSource("assets/audio_rest/sw_win.wav"),
-        menu = love.audio.newSource("assets/audio_outofgame/fchp.it")
     }
-    local minigame_bgm_filelist = love.filesystem.getDirectoryItems("assets/audio_splitscreen")
-    for i,f in ipairs(minigame_bgm_filelist) do
+    for i,f in ipairs(love.filesystem.getDirectoryItems("assets/audio_splitscreen")) do
         table.insert(minigame_bgm, love.audio.newSource("assets/audio_splitscreen/"..f))
     end
-    -- TODO: use wave for fancy music-based pulsing on menu. fchp.it needs to be rendered to wav first.
-    --[[menubgm = Wave:newSource("assets/audio_outofgame/fchp.it", "static")
+    --[[menubgm = Wave:newSource("assets/audio_outofgame/fchp_kt.wav", "static")
         :parse()
-        :setIntensity(10)--]]
+        :setIntensity(10)
+        :setBPM(128)
+        :setLooping(true)--]]
         
     graphics = {
         faster_sign = love.graphics.newImage("assets/faster.png"),
@@ -190,9 +189,7 @@ function menu:enter()
 end
 
 function menu:resume()
-    -- TODO: use this once wave and fchp.it are ready
     --menubgm:play()
-    music.menu:play()
 end
 
 function menu:draw()
@@ -209,6 +206,7 @@ end
 
 function menu:keyreleased(key)
     if key == 'return' then
+        --menubgm:stop()
         Gamestate.push(rest)
     elseif key == 'escape' then
         love.event.quit()
@@ -322,8 +320,6 @@ function rest:enter()
     timescale = 1
     set_timescale(timescale)    -- gotta reset properly
     games_played = 0
-    
-    love.audio.stop()
     
     anim.letsplay_popin()
 
