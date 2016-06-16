@@ -138,19 +138,20 @@ function love.load()
 
     games = love.filesystem.getDirectoryItems("games")
     bosses = love.filesystem.getDirectoryItems("bosses")
+    -- should this audio be loaded statically to reduce load delays?
     music = {
-        begin = Wave:newSource("assets/audio_rest/sw_begin.wav"),
-        boss = Wave:newSource("assets/audio_rest/sw_boss.wav"),
-        faster = Wave:newSource("assets/audio_rest/sw_faster.wav"),
-        gameover = Wave:newSource("assets/audio_rest/sw_gameover.wav"),
-        intro = Wave:newSource("assets/audio_rest/sw_intro.wav"),
-        lose = Wave:newSource("assets/audio_rest/sw_lose.wav"),
-        nextgame = Wave:newSource("assets/audio_rest/sw_next.wav"),
-        tick = Wave:newSource("assets/audio_rest/tick.wav"),
-        win = Wave:newSource("assets/audio_rest/sw_win.wav"),
+        begin = Wave:newSource("assets/audio_rest/sw_begin.wav", "static"),
+        boss = Wave:newSource("assets/audio_rest/sw_boss.wav", "static"),
+        faster = Wave:newSource("assets/audio_rest/sw_faster.wav", "static"),
+        gameover = Wave:newSource("assets/audio_rest/sw_gameover.wav", "static"),
+        intro = Wave:newSource("assets/audio_rest/sw_intro.wav", "static"),
+        lose = Wave:newSource("assets/audio_rest/sw_lose.wav", "static"),
+        nextgame = Wave:newSource("assets/audio_rest/sw_next.wav", "static"),
+        tick = Wave:newSource("assets/audio_rest/tick.wav", "static"),
+        win = Wave:newSource("assets/audio_rest/sw_win.wav", "static"),
     }
     for i,f in ipairs(love.filesystem.getDirectoryItems("assets/audio_splitscreen")) do
-        table.insert(minigame_bgm, Wave:newSource("assets/audio_splitscreen/"..f))
+        table.insert(minigame_bgm, Wave:newSource("assets/audio_splitscreen/"..f, "static"))
     end
     menubgm = Wave:newSource("assets/audio_outofgame/fchp_kt.wav", "static")
         :parse()
@@ -197,6 +198,7 @@ end
 
 function menu:draw()
     local logo_scalefactor = 1 + 1/20*menubgm:getEnergy() * (1 - tweens_scale.pulse)
+    
     love.graphics.setColor(color.white)
     love.graphics.draw(graphics.logo, screenCenter.x, screenCenter.y / 1.5, 0,
         graphics_scale.logo * (1 + 1/8*menubgm:getEnergy() * (1 - tweens_scale.pulse)), graphics_scale.logo * logo_scalefactor,
