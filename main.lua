@@ -8,6 +8,7 @@ local menu = {}
 local splitScreen = {}
 local boss = {}
 local rest = {}
+local postgame = {}
 --------------------------------------------------------------------------------
 
 local games = {}
@@ -374,7 +375,7 @@ function rest:update(dt)
         -- no more lives. game over. Leave this state.
         if rest.lives <= 0 then
             music.gameover:play()
-            Gamestate.pop()
+            Gamestate.switch(postgame)
 
         -- incoming boss: insert boss warning before nexttime
         elseif games_played % boss_interval == 0 and games_played ~= 0 then
@@ -497,3 +498,31 @@ function rest:draw()
         screenCenter.x, fonts.big:getHeight() / 1.7 * tweens_scale.pulse)
 end
 --------------------------------------------------------------------------------
+
+-- Postgame state --------------------------------------------------------------
+function postgame:enter()
+    
+end
+
+function postgame:draw()
+    love.graphics.setColor(color.white)
+    love.graphics.setFont(fonts.big)
+    love.graphics.printf("Game over!",
+        screenCenter.x, screenCenter.y/2,
+        screenCenter.x * 2, "center", 0,
+        1, 1,
+        screenCenter.x, fonts.big:getHeight() / 1.7)
+    
+    love.graphics.setFont(fonts.generic)
+    love.graphics.printf("(Allan please implement high scores)", 0, screenCenter.y, screenCenter.x * 2, "center", 0, 1, 1, 0, fonts.generic:getHeight() / 1.7)
+    love.graphics.printf("ENTER: return to menu", 0, screenCenter.y * 1.5, screenCenter.x * 2, "center", 0, 1, 1, 0, fonts.generic:getHeight() / 1.7)
+end
+    
+function postgame:update(dt)
+end
+
+function postgame:keyreleased(key)
+    if key == 'return' then
+        Gamestate.pop()
+    end
+end
