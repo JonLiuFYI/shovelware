@@ -31,10 +31,6 @@ local menubgm
 local timescale = 1               -- represents the speed of the game. timescale = 1.5 means 1.5 times the speed.
 local time4beats = 2.122    -- time in seconds, scaled by timescale
 local time8beats = 4.256
-local resttime = -999       -- Wait this long once rest is started. -999 is a magic sentinel value.
-local warntime = -999       -- Wait this long while a warning is playing.
-local nexttime = -999       -- Wait this long before starting next.
-local playtime = -999       -- Wait this long before quitting splitscreen minigames.
 
 -- game phase timing stuff
 local faster_interval = 2   -- play this many games, then get faster
@@ -222,8 +218,21 @@ end
 --------------------------------------------------------------------------------
 
 -- SplitScreen gamestate -------------------------------------------------------
+local beats_left = 7
 function splitScreen:enter()
-    playtime = time8beats
+    start_ticking = true
+    beats_left = 7
+    Timer.after(time8beats, function()
+        Gamestate.pop()
+    end)
+
+    Timer.every(time8beats/8, function()
+        beats_left = beats_left - 1
+        if beats_left <= 3 then
+            music.tick:play()
+            tweens.pulse(2.5)
+        end
+    end, 7)
     
     minigame_bgm[love.math.random(#minigame_bgm)]:play()
 
@@ -251,51 +260,32 @@ function splitScreen:keypressed(key)
 end
 
 function splitScreen:update(dt)
-    if playtime > 0 then
-        playtime = playtime - dt
-    elseif -999 < playtime and playtime <= 0 then
-        playtime = -999
-        Gamestate.pop()
-    end
-
     next_game.l.update(dt, bindings.pl)
     next_game.r.update(dt, bindings.pr)
 end
 
--- these two variables track when a beat has passed. Used in splitScreen:draw().
-local old_beats_left = 4
-local beats_left = 3
 function splitScreen:draw()
     next_game.l.draw()
     next_game.r.draw()
     
-    old_beats_left = beats_left
-    beats_left = math.max(math.floor(playtime/time8beats*8), 0)
-    if beats_left <= 8 then
-        -- wtf??? screenCenter.y * 2 / 4 * 3
-        love.graphics.setColor(color.black)
-        love.graphics.circle("fill", screenCenter.x, screenCenter.y * 2 / 4 * 3, 64)
-        
-        if beats_left <= 3 then
-            if beats_left < old_beats_left then
-                music.tick:play()
-                tweens.pulse(2.5)
-            end
-            love.graphics.setColor(color.white)
-        else
-            love.graphics.setColor(color.slate)
-        end
-        
-        love.graphics.printf(math.max(beats_left, 0),
-            screenCenter.x, screenCenter.y * 2 / 4 * 3 + 5, screenCenter.x * 2,
-            "center", 0,
-            tweens_scale.pulse, tweens_scale.pulse,
-            screenCenter.x, fonts.big:getHeight() / 1.7)
+    love.graphics.setColor(color.black)
+    love.graphics.circle("fill", screenCenter.x, screenCenter.y * 2 / 4 * 3, 64)
+    
+    if beats_left <= 3 then
+        love.graphics.setColor(color.white)
+    else
+        love.graphics.setColor(color.slate)
     end
+    
+    love.graphics.printf(math.max(beats_left, 0),
+        screenCenter.x, screenCenter.y * 2 / 4 * 3 + 5, screenCenter.x * 2,
+        "center", 0,
+        tweens_scale.pulse, tweens_scale.pulse,
+        screenCenter.x, fonts.big:getHeight() / 1.7)
 end
 --------------------------------------------------------------------------------
 
--- Boss gamestate---------------------------------------------------------------
+-- TODO: Boss gamestate---------------------------------------------------------------
 function boss:enter()
     boss.game = require("bosses/" .. bosses[love.math.random(#bosses)]:sub(1, -5))
     print(boss.game.load())
@@ -323,8 +313,67 @@ end
 --------------------------------------------------------------------------------
 
 -- Rest gamestate -------------------------------------------------------
--- playnext controls if the "next game" tune plays
-local playnext
+-- Wat do after playing the win/lose jingle?
+function watdo()
+    -- no more lives. game over. Leave this state.
+    if rest.lives <= 0 then
+        music.gameover:play()
+        Gamestate.switch(postgame)
+
+    -- incoming boss: insert boss warning before next game
+    elseif games_played % boss_interval == 0 and games_played ~= 0 then
+        warn_of_boss = true
+        music.boss:play()
+        anim.show_sign()
+        Timer.after(time8beats, function() show_warning() end)
+
+    -- speed up: insert speed warning before next game
+    elseif games_played % faster_interval == 0 and games_played ~= 0 then
+        warn_of_faster = true
+        music.faster:play()
+        anim.show_sign()
+        Timer.after(time8beats, function() show_warning() end)
+
+    -- nothing special. just move to next minigame.
+    else
+        music.nextgame:play()
+        Timer.after(time4beats, function()
+            move_to_next_game()
+        end)
+    
+        -- load two games. don't let them be the same.
+        next_game.l = require("games/" .. games[love.math.random(#games)]:sub(1, -5))
+        repeat
+            next_game.r = require("games/" .. games[love.math.random(#games)]:sub(1, -5))
+        until next_game.r ~= next_game.l
+        show_next_instruction = true
+    end
+end
+
+-- show warning for speed up or boss
+function show_warning()
+    if warn_of_faster then
+        timescale = timescale + faster_inc
+        set_timescale(timescale)
+    end
+    
+    -- warn flags
+    warn_of_boss = false
+    warn_of_faster = false
+    
+    music.nextgame:play()
+    Timer.after(time4beats, function()
+        move_to_next_game()
+    end)
+end
+
+-- do this immediately before launching the next minigame
+function move_to_next_game()
+    love.audio.stop()
+    -- TODO: conditionally switch to boss
+    Gamestate.push(splitScreen)
+end
+
 function rest:enter()
     timescale = 1
     set_timescale(timescale)    -- gotta reset properly
@@ -332,8 +381,7 @@ function rest:enter()
     
     anim.letsplay_popin()
 
-    resttime = time8beats
-    playnext = true
+    Timer.after(time8beats, function() watdo() end)
 
     rest.lives = 2
     rest.lastWin = {}
@@ -361,77 +409,11 @@ function rest:resume()
 
     games_played = games_played + 1
 
-    resttime = time4beats
-    playnext = true
+    Timer.after(time4beats, function() watdo() end)
 end
 
 function rest:update(dt)
 
-    -- wait while win/lose tune plays, then play the next appropriate thing
-    if resttime > 0 then
-        resttime = resttime - dt
-    elseif -999 < resttime and resttime <= 0 then
-        resttime = -999
-        -- no more lives. game over. Leave this state.
-        if rest.lives <= 0 then
-            music.gameover:play()
-            Gamestate.switch(postgame)
-
-        -- incoming boss: insert boss warning before nexttime
-        elseif games_played % boss_interval == 0 and games_played ~= 0 then
-            warn_of_boss = true
-            music.boss:play()
-            anim.show_sign()
-            warntime = time8beats
-
-        -- speed up: insert speed warning before nexttime
-        elseif games_played % faster_interval == 0 and games_played ~= 0 then
-            warn_of_faster = true
-            music.faster:play()
-            anim.show_sign()
-            warntime = time8beats
-
-        -- nothing special. just move to next minigame.
-        else
-            nexttime = time4beats
-            -- load two games. don't let them be the same.
-            next_game.l = require("games/" .. games[love.math.random(#games)]:sub(1, -5))
-            repeat
-                next_game.r = require("games/" .. games[love.math.random(#games)]:sub(1, -5))
-            until next_game.r ~= next_game.l
-            show_next_instruction = true
-        end
-    end
-
-    -- wait while warning plays, then proceed to nexttime
-    if warntime > 0 then
-        warntime = warntime - dt
-    elseif -999 < warntime and warntime <= 0 then
-        -- play speed warning before speed up occurs
-        if warn_of_faster then
-            timescale = timescale + faster_inc
-            set_timescale(timescale)
-        end
-        
-        -- warn flags
-        warn_of_boss = false
-        warn_of_faster = false
-        
-        nexttime = time4beats
-        warntime = -999
-    end
-
-    -- wait while next tune plays, then move to minigames
-    if nexttime > 0 then
-        if playnext then music.nextgame:play() end
-        
-        playnext = false
-        nexttime = nexttime - dt
-    elseif -999 < nexttime and nexttime <= 0 then
-        love.audio.stop()
-        Gamestate.push(splitScreen)
-        nexttime = -999
-    end
 end
 
 function rest:draw()
@@ -500,14 +482,14 @@ end
 --------------------------------------------------------------------------------
 
 -- Postgame state --------------------------------------------------------------
-function postgame:enter()
+function postgame:enter(score)
     
 end
 
 function postgame:draw()
     love.graphics.setColor(color.white)
     love.graphics.setFont(fonts.big)
-    love.graphics.printf("Game over!",
+    love.graphics.printf("Game over! Games played: "..games_played,
         screenCenter.x, screenCenter.y/2,
         screenCenter.x * 2, "center", 0,
         1, 1,
