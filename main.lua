@@ -327,7 +327,7 @@ function watdo()
         anim.show_sign()
         Timer.after(time8beats, function() show_warning() end)
 
-    -- speed up: insert speed warning before next time
+    -- speed up: insert speed warning before next game
     elseif games_played % faster_interval == 0 and games_played ~= 0 then
         warn_of_faster = true
         music.faster:play()
@@ -374,8 +374,6 @@ function move_to_next_game()
     Gamestate.push(splitScreen)
 end
 
--- playnext controls if the "next game" tune plays
-local playnext
 function rest:enter()
     timescale = 1
     set_timescale(timescale)    -- gotta reset properly
@@ -384,7 +382,6 @@ function rest:enter()
     anim.letsplay_popin()
 
     Timer.after(time8beats, function() watdo() end)
-    playnext = true
 
     rest.lives = 2
     rest.lastWin = {}
@@ -413,7 +410,6 @@ function rest:resume()
     games_played = games_played + 1
 
     Timer.after(time4beats, function() watdo() end)
-    playnext = true
 end
 
 function rest:update(dt)
