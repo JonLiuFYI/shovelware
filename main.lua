@@ -146,6 +146,7 @@ function love.load()
         nextgame = Wave:newSource("assets/audio_rest/sw_next.wav", "static"),
         tick = Wave:newSource("assets/audio_rest/tick.wav", "static"),
         win = Wave:newSource("assets/audio_rest/sw_win.wav", "static"),
+        postgame = Wave:newSource("assets/audio_outofgame/sw_postgame.wav"):setLooping(true):setVolume(.6),
     }
     for i,f in ipairs(love.filesystem.getDirectoryItems("assets/audio_splitscreen")) do
         table.insert(minigame_bgm, Wave:newSource("assets/audio_splitscreen/"..f, "static"))
@@ -317,7 +318,6 @@ end
 function watdo()
     -- no more lives. game over. Leave this state.
     if rest.lives <= 0 then
-        music.gameover:play()
         Gamestate.switch(postgame)
 
     -- incoming boss: insert boss warning before next game
@@ -483,7 +483,10 @@ end
 
 -- Postgame state --------------------------------------------------------------
 function postgame:enter(score)
-    
+    music.gameover:play()
+    Timer.after(time4beats, function()
+        music.postgame:play()
+    end)
 end
 
 function postgame:draw()
@@ -505,6 +508,7 @@ end
 
 function postgame:keyreleased(key)
     if key == 'return' then
+        love.audio.stop()
         Gamestate.pop()
     end
 end
