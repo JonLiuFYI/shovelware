@@ -31,7 +31,6 @@ local menubgm
 local timescale = 1               -- represents the speed of the game. timescale = 1.5 means 1.5 times the speed.
 local time4beats = 2.122    -- time in seconds, scaled by timescale
 local time8beats = 4.256
-local nexttime = -999       -- Wait this long before starting next.
 
 -- game phase timing stuff
 local faster_interval = 2   -- play this many games, then get faster
@@ -321,14 +320,14 @@ function watdo()
         music.gameover:play()
         Gamestate.switch(postgame)
 
-    -- incoming boss: insert boss warning before nexttime
+    -- incoming boss: insert boss warning before next game
     elseif games_played % boss_interval == 0 and games_played ~= 0 then
         warn_of_boss = true
         music.boss:play()
         anim.show_sign()
         Timer.after(time8beats, function() show_warning() end)
 
-    -- speed up: insert speed warning before nexttime
+    -- speed up: insert speed warning before next time
     elseif games_played % faster_interval == 0 and games_played ~= 0 then
         warn_of_faster = true
         music.faster:play()
@@ -337,7 +336,11 @@ function watdo()
 
     -- nothing special. just move to next minigame.
     else
-        nexttime = time4beats
+        music.nextgame:play()
+        Timer.after(time4beats, function()
+            move_to_next_game()
+        end)
+    
         -- load two games. don't let them be the same.
         next_game.l = require("games/" .. games[love.math.random(#games)]:sub(1, -5))
         repeat
@@ -358,7 +361,17 @@ function show_warning()
     warn_of_boss = false
     warn_of_faster = false
     
-    nexttime = time4beats
+    music.nextgame:play()
+    Timer.after(time4beats, function()
+        move_to_next_game()
+    end)
+end
+
+-- do this immediately before launching the next minigame
+function move_to_next_game()
+    love.audio.stop()
+    -- TODO: conditionally switch to boss
+    Gamestate.push(splitScreen)
 end
 
 -- playnext controls if the "next game" tune plays
@@ -404,18 +417,7 @@ function rest:resume()
 end
 
 function rest:update(dt)
-    -- wait while next tune plays, then move to minigames
-    if nexttime > 0 then
-        if playnext then music.nextgame:play() end
-        
-        playnext = false
-        nexttime = nexttime - dt
-    elseif -999 < nexttime and nexttime <= 0 then
-        love.audio.stop()
-        -- TODO: conditionally switch to boss
-        Gamestate.push(splitScreen)
-        nexttime = -999
-    end
+
 end
 
 function rest:draw()
