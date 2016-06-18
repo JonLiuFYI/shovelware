@@ -1,8 +1,11 @@
 local bla = {}
 
+function bla.instruction()
+    return "Do this!"
+end
+
 function bla.load(x, w, h)
     bla.win = false
-    bla.instruction = "Do this!"
     bla.x = x
     bla.w = w
     bla.h = h

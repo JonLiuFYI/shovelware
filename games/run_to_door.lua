@@ -6,10 +6,12 @@ local speed
 local enemyScale
 local stop
 
+function run_to_door.instruction()
+    return "Run!"
+end
 
 function run_to_door.load(x, w, h)
     run_to_door.win = false
-    run_to_door.instruction = "Run!"
     run_to_door.x = x
     run_to_door.w = w
     run_to_door.h = h

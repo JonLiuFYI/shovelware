@@ -224,9 +224,6 @@ local beats_left = 7
 function splitScreen:enter()
     start_ticking = true
     beats_left = 7
-    Timer.after(time8beats, function()
-        Gamestate.pop()
-    end)
 
     Timer.every(time8beats/8, function()
         beats_left = beats_left - 1
@@ -240,6 +237,10 @@ function splitScreen:enter()
 
     next_game.l.load(0, screenCenter.x, screenCenter.y * 2)
     next_game.r.load(screenCenter.x, screenCenter.x, screenCenter.y * 2)
+    
+    Timer.after(time8beats, function()
+        Gamestate.pop()
+    end)
 end
 
 function splitScreen:leave()
@@ -338,16 +339,7 @@ function watdo()
     -- nothing special. just move to next minigame.
     else
         music.nextgame:play()
-        Timer.after(time4beats, function()
-            move_to_next_game()
-        end)
-    
-        -- load two games. don't let them be the same.
-        next_game.l = require("games/" .. games[love.math.random(#games)]:sub(1, -5))
-        repeat
-            next_game.r = require("games/" .. games[love.math.random(#games)]:sub(1, -5))
-        until next_game.r ~= next_game.l
-        show_next_instruction = true
+        prepare_next_game()
     end
 end
 
@@ -363,9 +355,7 @@ function show_warning()
     warn_of_faster = false
     
     music.nextgame:play()
-    Timer.after(time4beats, function()
-        move_to_next_game()
-    end)
+    prepare_next_game()
 end
 
 -- do this immediately before launching the next minigame
@@ -374,6 +364,21 @@ function move_to_next_game()
     -- TODO: conditionally switch to boss
     Gamestate.push(splitScreen)
 end
+
+-- load two games, then switch to them
+function prepare_next_game()
+    -- load two games. don't let them be the same.
+    next_game.l = require("games/" .. games[love.math.random(#games)]:sub(1, -5))
+    repeat
+        next_game.r = require("games/" .. games[love.math.random(#games)]:sub(1, -5))
+    until next_game.r ~= next_game.l
+    print(next_game.l.instruction(), next_game.r.instruction())
+    show_next_instruction = true
+    
+    Timer.after(time4beats, function()
+        move_to_next_game()
+    end)
+end    
 
 function rest:enter()
     timescale = 1
@@ -397,6 +402,7 @@ end
 
 function rest:resume()
     rest.fromMenu = false
+    show_next_instruction = false
     games_played = games_played + 1
     
     -- play the right music based on how the team played. Then start the countdown to next game.
@@ -419,6 +425,16 @@ end
 
 function rest:draw()
     if not rest.fromMenu then
+        if show_next_instruction then
+            love.graphics.setFont(fonts.generic)
+            
+            love.graphics.setColor(color.playerblue)
+            love.graphics.printf(next_game.l.instruction(), 0, screenCenter.y*3/4, screenCenter.x, "center", 0, 1, 1, 0, fonts.generic:getHeight() / 1.7)
+            
+            love.graphics.setColor(color.playerred)
+            love.graphics.printf(next_game.r.instruction(), screenCenter.x, screenCenter.y*3/4, screenCenter.x, "center", 0, 1, 1, 0, fonts.generic:getHeight() / 1.7)
+        end
+        
         if rest.lastWin.pl then
             love.graphics.setColor(color.playerblue)
             love.graphics.setFont(fonts.big)
@@ -456,7 +472,7 @@ function rest:draw()
                 graphics_scale.faster_sign*tweens_scale.popin, graphics_scale.faster_sign*tweens_scale.popin,
                 graphics.boss_sign:getWidth() / 2, graphics.boss_sign:getHeight() / 2)
         end
-    else
+    else    -- we just started the game
         love.graphics.printf("Let's play!",
             screenCenter.x, screenCenter.y/2,
             screenCenter.x * 2, "center", 0,

@@ -1,8 +1,11 @@
 local test = {}
 
+function test.instruction()
+    return "Obey!"
+end
+
 function test.load(x, w, h)
     test.win = true
-    test.instruction = "Obey!"
     test.x = x
     test.w = w
     test.h = h
