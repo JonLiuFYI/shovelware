@@ -191,6 +191,7 @@ function menu:enter()
 end
 
 function menu:resume()
+    love.audio.stop()
     menubgm:play()
 end
 
@@ -348,6 +349,8 @@ function watdo()
         until next_game.r ~= next_game.l
         show_next_instruction = true
     end
+    
+    
 end
 
 -- show warning for speed up or boss
@@ -396,6 +399,8 @@ end
 
 function rest:resume()
     rest.fromMenu = false
+    games_played = games_played + 1
+    
     -- play the right music based on how the team played. Then start the countdown to next game.
     if rest.lastWin.pl and rest.lastWin.pr then
         music.win:play()
@@ -406,8 +411,6 @@ function rest:resume()
         end
         music.lose:play()
     end
-
-    games_played = games_played + 1
 
     Timer.after(time4beats, function() watdo() end)
 end
@@ -485,7 +488,9 @@ end
 function postgame:enter(score)
     music.gameover:play()
     Timer.after(time4beats, function()
-        music.postgame:play()
+        if Gamestate.current() == postgame then
+            music.postgame:play()
+        end
     end)
 end
 
@@ -508,7 +513,6 @@ end
 
 function postgame:keyreleased(key)
     if key == 'return' then
-        love.audio.stop()
         Gamestate.pop()
     end
 end
