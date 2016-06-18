@@ -349,8 +349,6 @@ function watdo()
         until next_game.r ~= next_game.l
         show_next_instruction = true
     end
-    
-    
 end
 
 -- show warning for speed up or boss
