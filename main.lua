@@ -372,7 +372,6 @@ function prepare_next_game()
     repeat
         next_game.r = require("games/" .. games[love.math.random(#games)]:sub(1, -5))
     until next_game.r ~= next_game.l
-    print(next_game.l.instruction(), next_game.r.instruction())
     show_next_instruction = true
     
     Timer.after(time4beats, function()
@@ -383,17 +382,17 @@ end
 function rest:enter()
     timescale = 1
     set_timescale(timescale)    -- gotta reset properly
-    games_played = 0
     
     anim.letsplay_popin()
 
-    Timer.after(time8beats, function() watdo() end)
-
+    games_played = 0
     rest.lives = 2
     rest.lastWin = {}
     rest.fromMenu = true
     music.begin:play()
     music.intro:play()
+    
+    Timer.after(time8beats, function() watdo() end)
 end
 
 function rest:leave()
@@ -426,37 +425,36 @@ end
 function rest:draw()
     if not rest.fromMenu then
         if show_next_instruction then
-            love.graphics.setFont(fonts.generic)
-            
+            love.graphics.setFont(fonts.big)
             love.graphics.setColor(color.playerblue)
-            love.graphics.printf(next_game.l.instruction(), 0, screenCenter.y*3/4, screenCenter.x, "center", 0, 1, 1, 0, fonts.generic:getHeight() / 1.7)
+            love.graphics.printf(next_game.l.instruction(), 0, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
             
             love.graphics.setColor(color.playerred)
-            love.graphics.printf(next_game.r.instruction(), screenCenter.x, screenCenter.y*3/4, screenCenter.x, "center", 0, 1, 1, 0, fonts.generic:getHeight() / 1.7)
-        end
-        
-        if rest.lastWin.pl then
-            love.graphics.setColor(color.playerblue)
-            love.graphics.setFont(fonts.big)
-            love.graphics.printf("Pass!", 0, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
-        elseif not rest.lastWin.pl then
-            love.graphics.setColor(color.white)
-            love.graphics.setFont(fonts.big)
-            love.graphics.printf("Miss!", 0, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
-            love.graphics.setFont(fonts.generic)
-            love.graphics.printf("-1 life", 0, screenCenter.y + 50, screenCenter.x, "center", 0, 1, 1, 0, fonts.generic:getHeight() / 1.7)
-        end
+            love.graphics.printf(next_game.r.instruction(), screenCenter.x, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
+        else
+            if rest.lastWin.pl then
+                love.graphics.setColor(color.playerblue)
+                love.graphics.setFont(fonts.big)
+                love.graphics.printf("Pass!", 0, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
+            elseif not rest.lastWin.pl then
+                love.graphics.setColor(color.white)
+                love.graphics.setFont(fonts.big)
+                love.graphics.printf("Miss!", 0, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
+                love.graphics.setFont(fonts.generic)
+                love.graphics.printf("-1 life", 0, screenCenter.y + 50, screenCenter.x, "center", 0, 1, 1, 0, fonts.generic:getHeight() / 1.7)
+            end
 
-        if rest.lastWin.pr then
-            love.graphics.setColor(color.playerred)
-            love.graphics.setFont(fonts.big)
-            love.graphics.printf("Pass!", screenCenter.x, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
-        elseif not rest.lastWin.pr then
-            love.graphics.setColor(color.white)
-            love.graphics.setFont(fonts.big)
-            love.graphics.printf("Miss!", screenCenter.x, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
-            love.graphics.setFont(fonts.generic)
-            love.graphics.printf("-1 life", screenCenter.x, screenCenter.y + 50, screenCenter.x, "center", 0, 1, 1, 0, fonts.generic:getHeight() / 1.7)
+            if rest.lastWin.pr then
+                love.graphics.setColor(color.playerred)
+                love.graphics.setFont(fonts.big)
+                love.graphics.printf("Pass!", screenCenter.x, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
+            elseif not rest.lastWin.pr then
+                love.graphics.setColor(color.white)
+                love.graphics.setFont(fonts.big)
+                love.graphics.printf("Miss!", screenCenter.x, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
+                love.graphics.setFont(fonts.generic)
+                love.graphics.printf("-1 life", screenCenter.x, screenCenter.y + 50, screenCenter.x, "center", 0, 1, 1, 0, fonts.generic:getHeight() / 1.7)
+            end
         end
 
         if warn_of_faster then
@@ -478,6 +476,14 @@ function rest:draw()
             screenCenter.x * 2, "center", 0,
             1*tweens_scale.popin, 1*tweens_scale.popin,
             screenCenter.x, fonts.big:getHeight() / 1.7)
+        if show_next_instruction then
+            love.graphics.setFont(fonts.big)
+            love.graphics.setColor(color.playerblue)
+            love.graphics.printf(next_game.l.instruction(), 0, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
+            
+            love.graphics.setColor(color.playerred)
+            love.graphics.printf(next_game.r.instruction(), screenCenter.x, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
+        end
     end
 
     love.graphics.setColor(color.white)
