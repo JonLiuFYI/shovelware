@@ -460,7 +460,7 @@ function rest:draw()
         if warn_of_faster then
             love.graphics.setColor(color.white)
             love.graphics.draw(graphics.faster_sign,
-                screenCenter.x*(1 + 2.5*tweens_scale.backslide), screenCenter.y/2, 0,
+                screenCenter.x*(1 + 4*tweens_scale.backslide), screenCenter.y/2, 0,
                 graphics_scale.faster_sign*(tweens_scale.popin + 4*tweens_scale.backslide), graphics_scale.faster_sign*(tweens_scale.popin - tweens_scale.backslide),
                 graphics.faster_sign:getWidth() / 2, graphics.faster_sign:getHeight() / 2)
         elseif warn_of_boss then
@@ -517,7 +517,7 @@ end
 function postgame:draw()
     love.graphics.setColor(color.white)
     love.graphics.setFont(fonts.big)
-    love.graphics.printf("Game over! Games played: "..games_played,
+    love.graphics.printf("Game over!\nGames played: "..games_played,
         screenCenter.x, screenCenter.y/2,
         screenCenter.x * 2, "center", 0,
         1, 1,
