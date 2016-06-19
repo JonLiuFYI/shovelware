@@ -56,6 +56,7 @@ tweens_scale = {
     pulse = 1,
     popin = 1,
     backslide = 0,
+    popback = 0,
 }
 
 tweens = {
@@ -79,6 +80,13 @@ tweens = {
             tweens_scale,
             {backslide = 1},
             "in-back")
+    end,
+    popback = function()
+        tweens_scale.popback = 0
+        Timer.tween(time4beats,
+            tweens_scale,
+            {popback = 1},
+            "out-elastic")
     end,
 }
 anim = {
@@ -224,9 +232,6 @@ local beats_left = 7
 function splitScreen:enter()
     start_ticking = true
     beats_left = 7
-    Timer.after(time8beats, function()
-        Gamestate.pop()
-    end)
 
     Timer.every(time8beats/8, function()
         beats_left = beats_left - 1
@@ -240,6 +245,10 @@ function splitScreen:enter()
 
     next_game.l.load(0, screenCenter.x, screenCenter.y * 2)
     next_game.r.load(screenCenter.x, screenCenter.x, screenCenter.y * 2)
+    
+    Timer.after(time8beats, function()
+        Gamestate.pop()
+    end)
 end
 
 function splitScreen:leave()
@@ -338,16 +347,7 @@ function watdo()
     -- nothing special. just move to next minigame.
     else
         music.nextgame:play()
-        Timer.after(time4beats, function()
-            move_to_next_game()
-        end)
-    
-        -- load two games. don't let them be the same.
-        next_game.l = require("games/" .. games[love.math.random(#games)]:sub(1, -5))
-        repeat
-            next_game.r = require("games/" .. games[love.math.random(#games)]:sub(1, -5))
-        until next_game.r ~= next_game.l
-        show_next_instruction = true
+        prepare_next_game()
     end
 end
 
@@ -363,9 +363,7 @@ function show_warning()
     warn_of_faster = false
     
     music.nextgame:play()
-    Timer.after(time4beats, function()
-        move_to_next_game()
-    end)
+    prepare_next_game()
 end
 
 -- do this immediately before launching the next minigame
@@ -375,20 +373,55 @@ function move_to_next_game()
     Gamestate.push(splitScreen)
 end
 
+-- load two games, then switch to them
+function prepare_next_game()
+    -- load two games. don't let them be the same.
+    next_game.l = require("games/" .. games[love.math.random(#games)]:sub(1, -5))
+    repeat
+        next_game.r = require("games/" .. games[love.math.random(#games)]:sub(1, -5))
+    until next_game.r ~= next_game.l
+    show_next_instruction = true
+    tweens.popback()
+    
+    Timer.after(time4beats, function()
+        move_to_next_game()
+    end)
+end    
+
+-- display instructions to the upcoming minigames
+function show_instructions()
+    local rotate_factor = math.pi*(1-tweens_scale.popback)/4
+    
+    love.graphics.setFont(fonts.big)
+    love.graphics.setColor(color.playerblue)
+    love.graphics.printf(next_game.l.instruction(),
+        screenCenter.x/2, screenCenter.y,
+        screenCenter.x, "center", rotate_factor,
+        tweens_scale.popback, tweens_scale.popback,
+        screenCenter.x/2, fonts.big:getHeight() / 1.7)
+    
+    love.graphics.setColor(color.playerred)
+    love.graphics.printf(next_game.r.instruction(),
+        screenCenter.x*3/2, screenCenter.y,
+        screenCenter.x, "center", -rotate_factor,
+        tweens_scale.popback, tweens_scale.popback,
+        screenCenter.x/2, fonts.big:getHeight() / 1.7)
+end    
+
 function rest:enter()
     timescale = 1
     set_timescale(timescale)    -- gotta reset properly
-    games_played = 0
     
     anim.letsplay_popin()
 
-    Timer.after(time8beats, function() watdo() end)
-
+    games_played = 0
     rest.lives = 2
     rest.lastWin = {}
     rest.fromMenu = true
     music.begin:play()
     music.intro:play()
+    
+    Timer.after(time8beats, function() watdo() end)
 end
 
 function rest:leave()
@@ -397,6 +430,7 @@ end
 
 function rest:resume()
     rest.fromMenu = false
+    show_next_instruction = false
     games_played = games_played + 1
     
     -- play the right music based on how the team played. Then start the countdown to next game.
@@ -419,35 +453,39 @@ end
 
 function rest:draw()
     if not rest.fromMenu then
-        if rest.lastWin.pl then
-            love.graphics.setColor(color.playerblue)
-            love.graphics.setFont(fonts.big)
-            love.graphics.printf("Pass!", 0, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
-        elseif not rest.lastWin.pl then
-            love.graphics.setColor(color.white)
-            love.graphics.setFont(fonts.big)
-            love.graphics.printf("Miss!", 0, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
-            love.graphics.setFont(fonts.generic)
-            love.graphics.printf("-1 life", 0, screenCenter.y + 50, screenCenter.x, "center", 0, 1, 1, 0, fonts.generic:getHeight() / 1.7)
-        end
+        if show_next_instruction then
+            show_instructions()
+        else
+            if rest.lastWin.pl then
+                love.graphics.setColor(color.playerblue)
+                love.graphics.setFont(fonts.big)
+                love.graphics.printf("Pass!", 0, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
+            elseif not rest.lastWin.pl then
+                love.graphics.setColor(color.white)
+                love.graphics.setFont(fonts.big)
+                love.graphics.printf("Miss!", 0, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
+                love.graphics.setFont(fonts.generic)
+                love.graphics.printf("-1 life", 0, screenCenter.y + 50, screenCenter.x, "center", 0, 1, 1, 0, fonts.generic:getHeight() / 1.7)
+            end
 
-        if rest.lastWin.pr then
-            love.graphics.setColor(color.playerred)
-            love.graphics.setFont(fonts.big)
-            love.graphics.printf("Pass!", screenCenter.x, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
-        elseif not rest.lastWin.pr then
-            love.graphics.setColor(color.white)
-            love.graphics.setFont(fonts.big)
-            love.graphics.printf("Miss!", screenCenter.x, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
-            love.graphics.setFont(fonts.generic)
-            love.graphics.printf("-1 life", screenCenter.x, screenCenter.y + 50, screenCenter.x, "center", 0, 1, 1, 0, fonts.generic:getHeight() / 1.7)
+            if rest.lastWin.pr then
+                love.graphics.setColor(color.playerred)
+                love.graphics.setFont(fonts.big)
+                love.graphics.printf("Pass!", screenCenter.x, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
+            elseif not rest.lastWin.pr then
+                love.graphics.setColor(color.white)
+                love.graphics.setFont(fonts.big)
+                love.graphics.printf("Miss!", screenCenter.x, screenCenter.y, screenCenter.x, "center", 0, 1, 1, 0, fonts.big:getHeight() / 1.7)
+                love.graphics.setFont(fonts.generic)
+                love.graphics.printf("-1 life", screenCenter.x, screenCenter.y + 50, screenCenter.x, "center", 0, 1, 1, 0, fonts.generic:getHeight() / 1.7)
+            end
         end
 
         if warn_of_faster then
             love.graphics.setColor(color.white)
             love.graphics.draw(graphics.faster_sign,
-                screenCenter.x*(1 + 2.5*tweens_scale.backslide), screenCenter.y/2, 0,
-                graphics_scale.faster_sign*(tweens_scale.popin + 4*tweens_scale.backslide), graphics_scale.faster_sign*(tweens_scale.popin - tweens_scale.backslide),
+                screenCenter.x*(1 + 4*tweens_scale.backslide), (screenCenter.y * tweens_scale.popin) - screenCenter.y/2, 0,
+                graphics_scale.faster_sign*(1 + 4*tweens_scale.backslide), graphics_scale.faster_sign*(1 - tweens_scale.backslide),
                 graphics.faster_sign:getWidth() / 2, graphics.faster_sign:getHeight() / 2)
         elseif warn_of_boss then
             love.graphics.setColor(color.white)
@@ -456,12 +494,15 @@ function rest:draw()
                 graphics_scale.faster_sign*tweens_scale.popin, graphics_scale.faster_sign*tweens_scale.popin,
                 graphics.boss_sign:getWidth() / 2, graphics.boss_sign:getHeight() / 2)
         end
-    else
+    else    -- we just started the game
         love.graphics.printf("Let's play!",
             screenCenter.x, screenCenter.y/2,
             screenCenter.x * 2, "center", 0,
             1*tweens_scale.popin, 1*tweens_scale.popin,
             screenCenter.x, fonts.big:getHeight() / 1.7)
+        if show_next_instruction then
+            show_instructions()
+        end
     end
 
     love.graphics.setColor(color.white)
@@ -495,7 +536,7 @@ end
 function postgame:draw()
     love.graphics.setColor(color.white)
     love.graphics.setFont(fonts.big)
-    love.graphics.printf("Game over! Games played: "..games_played,
+    love.graphics.printf("Game over!\nGames played: "..games_played,
         screenCenter.x, screenCenter.y/2,
         screenCenter.x * 2, "center", 0,
         1, 1,
