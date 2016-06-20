@@ -5,7 +5,6 @@ function love.conf(t)
     t.window.height = 900
 	t.window.fullscreen = false
     t.window.fullscreentype = "desktop"
-	-- is msaa really needed?
 	t.window.msaa = 4
 	t.window.vsync = true
 

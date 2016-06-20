@@ -57,6 +57,7 @@ tweens_scale = {
     popin = 1,
     backslide = 0,
     popback = 0,
+    linear = 0,
 }
 
 tweens = {
@@ -88,6 +89,13 @@ tweens = {
             {popback = 1},
             "out-elastic")
     end,
+    linear = function(duration)
+        tweens_scale.linear = 0
+        Timer.tween(duration,
+            tweens_scale,
+            {linear = 1},
+            "linear")
+    end,       
 }
 anim = {
     lives_pulse = function()
@@ -232,7 +240,9 @@ local beats_left = 7
 function splitScreen:enter()
     start_ticking = true
     beats_left = 7
-
+    
+    tweens.linear(time8beats)
+    
     Timer.every(time8beats/8, function()
         beats_left = beats_left - 1
         if beats_left <= 3 then
@@ -279,8 +289,11 @@ function splitScreen:draw()
     next_game.l.draw()
     next_game.r.draw()
     
+    love.graphics.setColor(255, 255, 255, 127)
+    love.graphics.arc("fill", screenCenter.x, screenCenter.y*3/2, 64 + 10*tweens_scale.pulse, -.5*math.pi, math.pi*(2*tweens_scale.linear - .5))
     love.graphics.setColor(color.black)
     love.graphics.circle("fill", screenCenter.x, screenCenter.y * 2 / 4 * 3, 64)
+    
     
     if beats_left <= 3 then
         love.graphics.setColor(color.white)
@@ -289,7 +302,7 @@ function splitScreen:draw()
     end
     
     love.graphics.printf(math.max(beats_left, 0),
-        screenCenter.x, screenCenter.y * 2 / 4 * 3 + 5, screenCenter.x * 2,
+        screenCenter.x, screenCenter.y*3/2 + 5, screenCenter.x * 2,
         "center", 0,
         tweens_scale.pulse, tweens_scale.pulse,
         screenCenter.x, fonts.big:getHeight() / 1.7)
